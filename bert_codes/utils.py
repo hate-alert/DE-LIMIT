@@ -3,6 +3,11 @@ import datetime
 import numpy as np
 from sklearn.metrics import f1_score
 
+def fix_the_random(seed_val = 42):
+    random.seed(seed_val)
+    np.random.seed(seed_val)
+    torch.manual_seed(seed_val)
+    torch.cuda.manual_seed_all(seed_val)
 
 
 

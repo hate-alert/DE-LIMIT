@@ -1,5 +1,9 @@
 from transformers.modeling_bert import *
 
+
+
+
+
 class SC_weighted_BERT(BertPreTrainedModel):
     def __init__(self, config,weights):
         super().__init__(config)
@@ -8,7 +12,6 @@ class SC_weighted_BERT(BertPreTrainedModel):
         self.bert = BertModel(config)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
         self.classifier = nn.Linear(config.hidden_size, self.config.num_labels)
-
         self.init_weights()
 
     def forward(

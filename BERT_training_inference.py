@@ -105,15 +105,13 @@ def Eval_phase(params,which_files='test',model=None):
 		tmp_eval_accuracy = flat_accuracy(logits, label_ids)
 		# Accumulate the total accuracy.
 		eval_accuracy += tmp_eval_accuracy
-		print(logits, label_ids)
-
+		
 		pred_labels+=list(np.argmax(logits, axis=1).flatten())
 		true_labels+=list(label_ids.flatten())
 
 		# Track the number of batches
 		nb_eval_steps += 1
 
-	print(true_labels,pred_labels)
 	testf1=f1_score(true_labels, pred_labels, average='macro')
 	testacc=accuracy_score(true_labels,pred_labels)
 
@@ -131,7 +129,7 @@ def Eval_phase(params,which_files='test',model=None):
 		neptune.append_tag(language)
 		neptune.append_tag('test')
 		neptune.log_metric('test_f1score',testf1)
-		neptune.log_metric('test_f1score',testacc)
+		neptune.log_metric('test_accuracy',testacc)
 		neptune.stop()
 	
 	return testf1,testacc
@@ -207,13 +205,7 @@ def train_model(params):
 												num_training_steps = total_steps)
 
 	# Set the seed value all over the place to make this reproducible.
-	seed_val = 42
-
-	random.seed(seed_val)
-	np.random.seed(seed_val)
-	torch.manual_seed(seed_val)
-	torch.cuda.manual_seed_all(seed_val)
-
+	fix_the_random(seed_val = 42)
 	# Store the average loss after each epoch so we can plot them.
 	loss_values = []
 
@@ -227,13 +219,6 @@ def train_model(params):
 		
 	# For each epoch...
 	for epoch_i in range(0, params['epochs']):
-
-		# ========================================
-		#               Training
-		# ========================================
-
-		# Perform one full pass over the training set.
-
 		print("")
 		print('======== Epoch {:} / {:} ========'.format(epoch_i + 1, epochs))
 		print('Training...')
@@ -257,15 +242,6 @@ def train_model(params):
 			if step % 40 == 0 and not step == 0:
 				# Calculate elapsed time in minutes.
 				elapsed = format_time(time.time() - t0)
-
-				# Report progress.
-#                 print('  Batch {:>5,}  of  {:>5,}.    Elapsed: {:}.'.format(step, len(train_dataloader), elapsed))
-
-			# Unpack this training batch from our dataloader. 
-			#
-			# As we unpack the batch, we'll also copy each tensor to the GPU using the 
-			# `to` method.
-			#
 			# `batch` contains three pytorch tensors:
 			#   [0]: input ids 
 			#   [1]: attention masks
@@ -273,18 +249,9 @@ def train_model(params):
 			b_input_ids = batch[0].to(device)
 			b_input_mask = batch[1].to(device)
 			b_labels = batch[2].to(device)
-
-			# Always clear any previously calculated gradients before performing a
-			# backward pass. PyTorch doesn't do this automatically because 
-			# accumulating the gradients is "convenient while training RNNs". 
 			# (source: https://stackoverflow.com/questions/48001598/why-do-we-need-to-call-zero-grad-in-pytorch)
 			model.zero_grad()        
 
-			# Perform a forward pass (evaluate the model on this training batch).
-			# This will return the loss (rather than the model output) because we
-			# have provided the `labels`.
-			# The documentation for this `model` function is here: 
-			# https://huggingface.co/transformers/v2.2.0/model_doc/bert.html#transformers.BertForSequenceClassification
 			outputs = model(b_input_ids, 
 						token_type_ids=None, 
 						attention_mask=b_input_mask, 
@@ -321,20 +288,7 @@ def train_model(params):
 
 		# Store the loss value for plotting the learning curve.
 		loss_values.append(avg_train_loss)
-
-#         print("")
-#         print("  Average training loss: {0:.2f}".format(avg_train_loss))
-#         print("  Training epcoh took: {:}".format(format_time(time.time() - t0)))
-
-#         # ========================================
-#         #               Validation
-#         # ========================================
-#         # After the completion of each training epoch, measure our performance on
-#         # our validation set.
-
-#         print("")
-#         print("Running Validation...")
-
+		fscore=Eval_phase(params,'val',model)		
 		t0 = time.time()
 
 		# Put the model in evaluation mode--the dropout layers behave differently
@@ -388,7 +342,6 @@ def train_model(params):
 			nb_eval_steps += 1
 		
 		#Report the final accuracy for this validation run.
-		print(true_labels,pred_labels)
 		if(params['logging']!='neptune'):
 			print("  Accuracy: {0:.2f}".format(eval_accuracy/nb_eval_steps))
 			print("  Fscore: {0:.2f}".format(f1_score(true_labels, pred_labels, average='macro')))
@@ -438,10 +391,10 @@ params={
 	'epsilon':1e-8,
 	'path_files':'multilingual_bert/',
 	'sample_ratio':100,
-	'how_train':'baseline',
+	'how_train':'all',
 	'epochs':5,
 	'batch_size':8,
-	'to_save':False,
+	'to_save':True,
 	'weights':[1.0,1.0]
 }
 
