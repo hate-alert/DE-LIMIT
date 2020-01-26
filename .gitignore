@@ -1,0 +1,6 @@
+multilingual_bert/
+models_saved/
+full_data/
+Translation/
+.ipynb_checkpoints/
+*.zip
