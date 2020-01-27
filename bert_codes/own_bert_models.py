@@ -2,6 +2,28 @@ from transformers.modeling_bert import *
 
 
 
+def select_model(type_of_model,path,weights):
+    if(type_of_model=='weighted'):
+        model = SC_weighted_BERT.from_pretrained(
+        path, # Use the 12-layer BERT model, with an uncased vocab.
+        num_labels = 2, # The number of output labels--2 for binary classification             # You can increase this for multi-class tasks.   
+        output_attentions = False, # Whether the model returns attentions weights.
+        output_hidden_states = False, # Whether the model returns all hidden-states.
+        weights=weights
+    )
+    elif(type_of_model=='normal'):
+        model = BertForSequenceClassification.from_pretrained(
+          path, # Use the 12-layer BERT model, with an uncased vocab.
+          num_labels = 2, # The number of output labels--2 for binary classification             # You can increase this for multi-class tasks.   
+          output_attentions = False, # Whether the model returns attentions weights.
+          output_hidden_states = False, # Whether the model returns all hidden-states.
+        )
+    return model
+
+        
+
+
+
 
 
 class SC_weighted_BERT(BertPreTrainedModel):

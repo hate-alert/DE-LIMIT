@@ -165,13 +165,15 @@ def train_model(params):
 	print(label_counts)
 	label_weights = [ (len(df_train))/label_counts[0],len(df_train)/label_counts[1] ]
 	print(label_weights)
-	model = SC_weighted_BERT.from_pretrained(
-		params['path_files'], # Use the 12-layer BERT model, with an uncased vocab.
-		num_labels = 2, # The number of output labels--2 for binary classification             # You can increase this for multi-class tasks.   
-		output_attentions = False, # Whether the model returns attentions weights.
-		output_hidden_states = False, # Whether the model returns all hidden-states.
-		weights=params['weights']
-	)
+	
+	model=select_model(params['what_bert'],params['path_files'],params['weights'])
+	# model = SC_weighted_BERT.from_pretrained(
+	# 	params['path_files'], # Use the 12-layer BERT model, with an uncased vocab.
+	# 	num_labels = 2, # The number of output labels--2 for binary classification             # You can increase this for multi-class tasks.   
+	# 	output_attentions = False, # Whether the model returns attentions weights.
+	# 	output_hidden_states = False, # Whether the model returns all hidden-states.
+	# 	weights=params['weights']
+	# )
 	# model = BertForSequenceClassification.from_pretrained(
 	# 	params['path_files'], # Use the 12-layer BERT model, with an uncased vocab.
 	# 	num_labels = 2, # The number of output labels--2 for binary classification             # You can increase this for multi-class tasks.   
@@ -288,69 +290,16 @@ def train_model(params):
 
 		# Store the loss value for plotting the learning curve.
 		loss_values.append(avg_train_loss)
-		fscore=Eval_phase(params,'val',model)		
-		t0 = time.time()
-
-		# Put the model in evaluation mode--the dropout layers behave differently
-		# during evaluation.
-		model.eval()
-
-		# Tracking variables 
-		eval_loss, eval_accuracy = 0, 0
-		nb_eval_steps, nb_eval_examples = 0, 0
-		true_labels=[]
-		pred_labels=[]
-		# Evaluate data for one epoch
-		for batch in validation_dataloader:
-
-			# Add batch to GPU
-			batch = tuple(t.to(device) for t in batch)
-
-			# Unpack the inputs from our dataloader
-			b_input_ids, b_input_mask, b_labels = batch
-
-			# Telling the model not to compute or store gradients, saving memory and
-			# speeding up validation
-			with torch.no_grad():        
-				# Forward pass, calculate logit predictions.
-				# This will return the logits rather than the loss because we have
-				# not provided labels.
-				# token_type_ids is the same as the "segment ids", which 
-				# differentiates sentence 1 and 2 in 2-sentence tasks.
-				# The documentation for this `model` function is here: 
-				# https://huggingface.co/transformers/v2.2.0/model_doc/bert.html#transformers.BertForSequenceClassification
-				outputs = model(b_input_ids, 
-								token_type_ids=None, 
-								attention_mask=b_input_mask)
-
-			# Get the "logits" output by the model. The "logits" are the output
-			# values prior to applying an activation function like the softmax.
-			logits = outputs[0]
-
-			# Move logits and labels to CPU
-			logits = logits.detach().cpu().numpy()
-			label_ids = b_labels.to('cpu').numpy()
-
-			# Calculate the accuracy for this batch of test sentences.
-			tmp_eval_accuracy = flat_accuracy(logits, label_ids)
-			pred_labels+=list(np.argmax(logits, axis=1).flatten())
-			true_labels+=list(label_ids.flatten())
-			# Accumulate the total accuracy.
-			eval_accuracy += tmp_eval_accuracy
-
-			# Track the number of batches
-			nb_eval_steps += 1
+		fscore,accuracy=Eval_phase(params,'val',model)		
 		
 		#Report the final accuracy for this validation run.
-		if(params['logging']!='neptune'):
-			print("  Accuracy: {0:.2f}".format(eval_accuracy/nb_eval_steps))
-			print("  Fscore: {0:.2f}".format(f1_score(true_labels, pred_labels, average='macro')))
-			print("  Validation took: {:}".format(format_time(time.time() - t0)))
-		else:
-			neptune.log_metric('val_fscore',f1_score(true_labels, pred_labels, average='macro'))
-			neptune.log_metric('val_acc',accuracy_score(true_labels,pred_labels))
-	if(params['to_save']==True):
+		if(params['logging']=='neptune'):	
+			neptune.log_metric('val_fscore',fscore)
+			neptune.log_metric('val_acc',accuracy)
+	
 
+
+	if(params['to_save']==True):
 		# Saving best-practices: if you use defaults names for the model, you can reload it using from_pretrained()
 		if(params['how_train']!='all'):
 			output_dir = 'models_saved/'+params['path_files'][:-1]+'_'+params['language']+'_'+params['how_train']+'_'+str(params['sample_ratio'])+'/'
@@ -365,6 +314,8 @@ def train_model(params):
 
 		# Save a trained model, configuration and tokenizer using `save_pretrained()`.
 		# They can then be reloaded using `from_pretrained()`
+		### TODO: add option for only saving the bert model
+
 		model_to_save = model.module if hasattr(model, 'module') else model  # Take care of distributed/parallel training
 		model_to_save.save_pretrained(output_dir)
 		tokenizer.save_pretrained(output_dir)
