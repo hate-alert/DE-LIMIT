@@ -2,6 +2,8 @@ import time
 import datetime
 import numpy as np
 from sklearn.metrics import f1_score
+import random
+import torch
 
 def fix_the_random(seed_val = 42):
     random.seed(seed_val)
