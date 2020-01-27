@@ -423,8 +423,21 @@ def train_multitask_model(params):
 
 
 
-
-
+# 'logging':where logging {'local','neptune'}
+# 'language': language {'English','Polish','Portugese','German','Indonesian','Italian','Arabic'}
+# 'is_train': whether train dataset 
+# 'is_model':is model 
+# 'learning_rate':Adam parameter lr
+# 'epsilon': Adam parameter episilon
+# 'path_files':bert path from the bert model should be loaded,
+# 'sample_ratio':ratio of the training data to take
+# 'how_train':how the bert is trained possible option {'all','baseline','all_but_one'}
+# 'epochs': number of epochs to train bert
+# 'batch_size': batch size
+# 'to_save': whether to save the model or not
+# 'weights': weights for binary classifier
+# 'what_bert': type of bert possible option {'normal','weighted'}
+# 'save_only_bert': if only bert (without classifier) should be used 
 
 
 
