@@ -130,7 +130,7 @@ def Eval_phase(params,which_files='test',model=None):
 
 params={
 	'logging':'locals',
-	'language':'English',
+	'language':'German',
 	'is_train':False,
 	'is_model':False,
 	'learning_rate':5e-5,
