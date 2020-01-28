@@ -33,7 +33,7 @@ neptune.init(project_name,api_token=api_token,proxies=proxies)
 neptune.set_project(project_name)
 
 print("current gpu device", torch.cuda.current_device())
-torch.cuda.set_device(1)
+torch.cuda.set_device(0)
 print("current gpu device",torch.cuda.current_device())
 
 
@@ -54,6 +54,7 @@ def Eval_phase(params,which_files='test',model=None):
 	tokenizer = BertTokenizer.from_pretrained(params['path_files'], do_lower_case=False)
 
 	if(params['is_model']==True):
+		print("hello")
 		model.eval()
 	else:
 		model=select_model(params['what_bert'],params['path_files'],params['weights'])

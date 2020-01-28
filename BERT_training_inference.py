@@ -35,7 +35,7 @@ neptune.init(project_name,api_token=api_token,proxies=proxies)
 neptune.set_project(project_name)
 
 print("current gpu device", torch.cuda.current_device())
-torch.cuda.set_device(1)
+torch.cuda.set_device(0)
 print("current gpu device",torch.cuda.current_device())
 	   
 
@@ -49,17 +49,8 @@ def train_model(params):
 	train_files=glob.glob('full_data/Train/*.csv')
 	val_files=glob.glob('full_data/Val/*.csv')
 
-	# Load the BERT tokenizer.
-	# Load BertForSequenceClassification, the pretrained BERT model with a single 
-	# linear classification layer on top. 
 	print('Loading BERT tokenizer...')
 	tokenizer = BertTokenizer.from_pretrained(params['path_files'], do_lower_case=False)
-	# model = BertForSequenceClassification.from_pretrained(
-	# 	params['path_files'], # Use the 12-layer BERT model, with an uncased vocab.
-	# 	num_labels = 2, # The number of output labels--2 for binary classification             # You can increase this for multi-class tasks.   
-	# 	output_attentions = False, # Whether the model returns attentions weights.
-	# 	output_hidden_states = False, # Whether the model returns all hidden-states.
-	# )
 	df_train=data_collector(train_files,params['language'],is_train=True,sample_ratio=params['sample_ratio'],type_train=params['how_train'])
 	df_val=data_collector(val_files,params['language'],is_train=False,sample_ratio=100,type_train=params['how_train'])
 	
@@ -197,7 +188,6 @@ def train_model(params):
 
 		if(params['save_only_bert']):
 			model=model.bert
-			print(model)
 			output_dir=output_dir+'_only_bert/'
 		else:
 			output_dir=output_dir+'/'
@@ -235,35 +225,34 @@ def train_model(params):
 
 
 def train_multitask_model(params):
-	train_files=glob.glob('/*.csv')
-	val_files=glob.glob('full_data/Val/*.csv')
+	train_files=glob.glob('hate_speech_mlma/*.csv')
 
 	print('Loading BERT tokenizer...')
 	tokenizer = BertTokenizer.from_pretrained(params['path_files'], do_lower_case=False)
-	df_train=data_collector(train_files,params['language'],is_train=True,sample_ratio=params['sample_ratio'],type_train=params['how_train'])
-	df_val=data_collector(val_files,params['language'],is_train=False,sample_ratio=100,type_train=params['how_train'])
-	
-	
-	sentences_train = df_train.text.values
-	labels_train = df_train.label.values
-	sentences_val = df_val.text.values
-	labels_val = df_val.label.values
-	#print(df_train['label'].value_counts())
-	label_counts=df_train['label'].value_counts()
-	print(label_counts)
-	label_weights = [ (len(df_train))/label_counts[0],len(df_train)/label_counts[1] ]
-	print(label_weights)
-	
-	model=select_model(params['what_bert'],params['path_files'],params['weights'])
+	df_train=data_collector(train_files,'English',is_train=True,sample_ratio=100,type_train=params['how_train'])
+	df_train=df_train.drop(['sentiment','annotator_sentiment'],axis=1)
+	df_train=MultiColumnLabelEncoder(columns = ['directness','target','group']).fit_transform(df_train)
+
+	list_unique=[]
+
+	for column in params['columns_to_consider']:
+	    list_unique.append((df_train[column].nunique()))
+	print(list_unique)
+
+	labels_train=df_train[['directness','target','group']].values
+	sentences_train=df_train.tweet.values
+
+	model=select_model(params['what_bert'],params['path_files'],params['weights'],list_unique)
 	# Tell pytorch to run this model on the GPU.
 	model.cuda()
+
+
 	input_train_ids,att_masks_train=combine_features(sentences_train,tokenizer)
-
-
-	input_val_ids,att_masks_val=combine_features(sentences_val,tokenizer)
 	train_dataloader = return_dataloader(input_train_ids,labels_train,att_masks_train,batch_size=params['batch_size'],is_train=params['is_train'])
-	validation_dataloader=return_dataloader(input_val_ids,labels_val,att_masks_val,batch_size=params['batch_size'],is_train=False)
-	
+
+
+
+
 	optimizer = AdamW(model.parameters(),
 				  lr = params['learning_rate'], # args.learning_rate - default is 5e-5, our notebook had 2e-5
 				  eps = params['epsilon'] # args.adam_epsilon  - default is 1e-8.
@@ -331,7 +320,7 @@ def train_multitask_model(params):
 			loss = outputs[0]
 			if(params['logging']=='neptune'):
 				neptune.log_metric('batch_loss',loss)
-			# Accumulate the training loss over all of the batches so that we can
+			# Accumulate the modeltraining loss over all of the batches so that we can
 			# calculate the average loss at the end. `loss` is a Tensor containing a
 			# single value; the `.item()` function just returns the Python value 
 			# from the tensor.
@@ -353,18 +342,11 @@ def train_multitask_model(params):
 		avg_train_loss = total_loss / len(train_dataloader)
 		if(params['logging']=='neptune'):
 			neptune.log_metric('avg_train_loss',avg_train_loss)
-		
+		else:
+			print('avg_train_loss',avg_train_loss)
 
-		# Store the loss value for plotting the learning curve.
 		loss_values.append(avg_train_loss)
-		fscore,accuracy=Eval_phase(params,'val',model)		
 		
-		#Report the final accuracy for this validation run.
-		if(params['logging']=='neptune'):	
-			neptune.log_metric('val_fscore',fscore)
-			neptune.log_metric('val_acc',accuracy)
-	
-
 
 	if(params['to_save']==True):
 		
@@ -390,25 +372,17 @@ def train_multitask_model(params):
 
 		# Save a trained model, configuration and tokenizer using `save_pretrained()`.
 		# They can then be reloaded using `from_pretrained()`
-		### TODO: add option for only saving the bert model
-
+		
 		model_to_save = model.module if hasattr(model, 'module') else model  # Take care of distributed/parallel training
 		model_to_save.save_pretrained(output_dir)
 		tokenizer.save_pretrained(output_dir)
 
 #     print("")
 #     print("Training complete!")
-	fscore=Eval_phase(params,'test',model)
+		
 	if(params['logging']=='neptune'):
-		neptune.log_metric('test_fscore',fscore)
 		# neptune.log_metric('val_acc',accuracy_score(true_labels,pred_labels))
 		neptune.stop()
-	return fscore
-
-
-
-
-
 
 
 
@@ -443,6 +417,25 @@ def train_multitask_model(params):
 
 
 
+# params={
+# 	'logging':'local',
+# 	'language':'Italian',
+# 	'is_train':True,
+# 	'is_model':True,
+# 	'learning_rate':2e-5,
+# 	'epsilon':1e-8,
+# 	'path_files':'models_saved/multilingual_bert_English_all_multitask_0.1_only_bert/',
+# 	'sample_ratio':100,
+# 	'how_train':'baseline',
+# 	'epochs':5,
+# 	'batch_size':8,
+# 	'to_save':True,
+# 	'weights':[1.0,1.0],
+# 	'what_bert':'weighted',
+# 	'save_only_bert':True,
+# 	'columns_to_consider':['directness','target','group']
+# }
+#### multitask 
 params={
 	'logging':'local',
 	'language':'English',
@@ -451,16 +444,19 @@ params={
 	'learning_rate':2e-5,
 	'epsilon':1e-8,
 	'path_files':'multilingual_bert/',
-	'sample_ratio':0.1,
-	'how_train':'all',
-	'epochs':1,
-	'batch_size':8,
+	'sample_ratio':100,
+	'how_train':'all_multitask',
+	'epochs':10,
+	'batch_size':32,
 	'to_save':True,
 	'weights':[1.0,1.0],
-	'what_bert':'weighted',
-	'save_only_bert':True
+	'what_bert':'multitask',
+	'save_only_bert':True,
+	'columns_to_consider':['directness','target','group']
 }
 
-if __name__=='__main__':
-	train_model(params)
 
+
+if __name__=='__main__':
+	train_multitask_model(params)
+	#train_model(params)
