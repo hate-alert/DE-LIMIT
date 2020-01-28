@@ -19,24 +19,24 @@ from tqdm import tqdm
 from BERT_inference import *
 import os
 
-# If there's a GPU available...
-if torch.cuda.is_available():    
-    # Tell PyTorch to use the GPU.    
-    device = torch.device("cuda")
-    print('There are %d GPU(s) available.' % torch.cuda.device_count())
-    print('We will use the GPU:', torch.cuda.get_device_name(0))
-# If not...
-else:
-    print('No GPU available, using the CPU instead.')
-    device = torch.device("cpu")
+# # If there's a GPU available...
+# if torch.cuda.is_available():    
+#     # Tell PyTorch to use the GPU.    
+#     device = torch.device("cuda")
+#     print('There are %d GPU(s) available.' % torch.cuda.device_count())
+#     print('We will use the GPU:', torch.cuda.get_device_name(0))
+# # If not...
+# else:
+#     print('No GPU available, using the CPU instead.')
+#     device = torch.device("cpu")
 
 
-neptune.init(project_name,api_token=api_token,proxies=proxies)
-neptune.set_project(project_name)
+# neptune.init(project_name,api_token=api_token,proxies=proxies)
+# neptune.set_project(project_name)
 
-print("current gpu device", torch.cuda.current_device())
-torch.cuda.set_device(0)
-print("current gpu device",torch.cuda.current_device())
+# print("current gpu device", torch.cuda.current_device())
+# torch.cuda.set_device(0)
+# print("current gpu device",torch.cuda.current_device())
 	   
 
 
@@ -359,7 +359,6 @@ def train_multitask_model(params):
 
 		if(params['save_only_bert']):
 			model=model.bert
-			print(model)
 			output_dir=output_dir+'_only_bert/'
 		else:
 			output_dir=output_dir+'/'
@@ -417,46 +416,46 @@ def train_multitask_model(params):
 
 
 
-# params={
-# 	'logging':'local',
-# 	'language':'Italian',
-# 	'is_train':True,
-# 	'is_model':True,
-# 	'learning_rate':2e-5,
-# 	'epsilon':1e-8,
-# 	'path_files':'models_saved/multilingual_bert_English_all_multitask_0.1_only_bert/',
-# 	'sample_ratio':100,
-# 	'how_train':'baseline',
-# 	'epochs':5,
-# 	'batch_size':8,
-# 	'to_save':True,
-# 	'weights':[1.0,1.0],
-# 	'what_bert':'weighted',
-# 	'save_only_bert':True,
-# 	'columns_to_consider':['directness','target','group']
-# }
-#### multitask 
 params={
 	'logging':'local',
-	'language':'English',
+	'language':'Arabic',
 	'is_train':True,
 	'is_model':True,
 	'learning_rate':2e-5,
 	'epsilon':1e-8,
-	'path_files':'multilingual_bert/',
+	'path_files':'models_saved/multilingual_bert_English_all_multitask_0.1_only_bert/',
 	'sample_ratio':100,
-	'how_train':'all_multitask',
-	'epochs':10,
-	'batch_size':32,
+	'how_train':'baseline',
+	'epochs':5,
+	'batch_size':8,
 	'to_save':True,
 	'weights':[1.0,1.0],
-	'what_bert':'multitask',
-	'save_only_bert':True,
+	'what_bert':'weighted',
+	'save_only_bert':False,
 	'columns_to_consider':['directness','target','group']
 }
+#### multitask 
+# params={
+# 	'logging':'local',
+# 	'language':'English',
+# 	'is_train':True,
+# 	'is_model':True,
+# 	'learning_rate':2e-5,
+# 	'epsilon':1e-8,
+# 	'path_files':'multilingual_bert/',
+# 	'sample_ratio':100,
+# 	'how_train':'all_multitask',
+# 	'epochs':20,
+# 	'batch_size':32,
+# 	'to_save':True,
+# 	'weights':[1.0,1.0],
+# 	'what_bert':'multitask',
+# 	'save_only_bert':True,
+# 	'columns_to_consider':['directness','target','group']
+# }
 
 
 
 if __name__=='__main__':
-	train_multitask_model(params)
-	#train_model(params)
+	# train_multitask_model(params)
+	train_model(params)
