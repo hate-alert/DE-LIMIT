@@ -208,16 +208,190 @@ def train_model(params):
 #     print("")
 #     print("Training complete!")
 	if(params['save_only_bert']==False):
-		fscore,accuracy=Eval_phase(params,'test',model)
+		fscore=Eval_phase(params,'test',model)
 
 		
 	if(params['logging']=='neptune'):
 		neptune.log_metric('test_fscore',fscore)
-		neptune.log_metric('test_accuracy',accuracy)
-		
 		# neptune.log_metric('val_acc',accuracy_score(true_labels,pred_labels))
 		neptune.stop()
 	return fscore
+
+
+
+
+
+
+webhook_url = "https://hooks.slack.com/services/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"
+@slack_sender(webhook_url=webhook_url, channel="#model_messages")
+def train_multitask_model(params):
+	#train_files=glob.glob('hate_speech_mlma/*.csv')
+	train_files=['To_Punyajoy_MTL.csv']
+	print('Loading BERT tokenizer...')
+	tokenizer = BertTokenizer.from_pretrained(params['path_files'], do_lower_case=False)
+	df_train=data_collector(train_files,'English',is_train=True,sample_ratio=100,type_train=params['how_train'])
+	#df_train=df_train.drop(['sentiment','annotator_sentiment'],axis=1)
+	df_train=MultiColumnLabelEncoder(columns = params['columns_to_consider']).fit_transform(df_train)
+
+	list_unique=[]
+
+	for column in params['columns_to_consider']:
+	    list_unique.append((df_train[column].nunique()))
+	print(list_unique)
+
+	labels_train=df_train[params['columns_to_consider']].values
+	sentences_train=df_train.text.values
+
+	model=select_model(params['what_bert'],params['path_files'],params['weights'],list_unique)
+	# Tell pytorch to run this model on the GPU.
+	model.cuda()
+
+
+	input_train_ids,att_masks_train=combine_features(sentences_train,tokenizer,params['max_length'])
+	train_dataloader = return_dataloader(input_train_ids,labels_train,att_masks_train,batch_size=params['batch_size'],is_train=params['is_train'])
+
+
+
+
+	optimizer = AdamW(model.parameters(),
+				  lr = params['learning_rate'], # args.learning_rate - default is 5e-5, our notebook had 2e-5
+				  eps = params['epsilon'] # args.adam_epsilon  - default is 1e-8.
+				)
+	
+	# Number of training epochs (authors recommend between 2 and 4)
+	# Total number of training steps is number of batches * number of epochs.
+	total_steps = len(train_dataloader) * params['epochs']
+
+	# Create the learning rate scheduler.
+	scheduler = get_linear_schedule_with_warmup(optimizer, 
+												num_warmup_steps = 0, # Default value in run_glue.py
+												num_training_steps = total_steps)
+
+	# Set the seed value all over the place to make this reproducible.
+	fix_the_random(seed_val = 42)
+	# Store the average loss after each epoch so we can plot them.
+	loss_values = []
+
+	bert_model = params['path_files'][:-1]
+	langauge  = params['language']
+	name_one=bert_model+"_"+langauge
+	if(params['logging']=='neptune'):
+		neptune.create_experiment(name_one,params=params,send_hardware_metrics=False,run_monitoring_thread=False)
+		neptune.append_tag(bert_model)
+		neptune.append_tag(langauge)
+		
+	# For each epoch...
+	for epoch_i in range(0, params['epochs']):
+		print("")
+		print('======== Epoch {:} / {:} ========'.format(epoch_i + 1, params['epochs']))
+		print('Training...')
+
+		# Measure how long the training epoch takes.
+		t0 = time.time()
+
+		# Reset the total loss for this epoch.
+		total_loss = 0
+		model.train()
+
+		# For each batch of training data...
+		for step, batch in tqdm(enumerate(train_dataloader)):
+
+			# Progress update every 40 batches.
+			if step % 40 == 0 and not step == 0:
+				# Calculate elapsed time in minutes.
+				elapsed = format_time(time.time() - t0)
+			# `batch` contains three pytorch tensors:
+			#   [0]: input ids 
+			#   [1]: attention masks
+			#   [2]: labels 
+			b_input_ids = batch[0].to(device)
+			b_input_mask = batch[1].to(device)
+			b_labels = batch[2].to(device)
+			# (source: https://stackoverflow.com/questions/48001598/why-do-we-need-to-call-zero-grad-in-pytorch)
+			model.zero_grad()        
+
+			outputs = model(b_input_ids, 
+						token_type_ids=None, 
+						attention_mask=b_input_mask, 
+						labels=b_labels)
+
+			# The call to `model` always returns a tuple, so we need to pull the 
+			# loss value out of the tuple.
+			loss = outputs[0]
+			if(params['logging']=='neptune'):
+				neptune.log_metric('batch_loss',loss)
+			# Accumulate the modeltraining loss over all of the batches so that we can
+			# calculate the average loss at the end. `loss` is a Tensor containing a
+			# single value; the `.item()` function just returns the Python value 
+			# from the tensor.
+			total_loss += loss.item()
+
+			# Perform a backward pass to calculate the gradients.
+			loss.backward()
+
+			# Clip the norm of the gradients to 1.0.
+			# This is to help prevent the "exploding gradients" problem.
+			torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+			# Update parameters and take a step using the computed gradient.
+			# The optimizer dictates the "update rule"--how the parameters are
+			# modified based on their gradients, the learning rate, etc.
+			optimizer.step()
+			# Update the learning rate.
+			scheduler.step()
+		# Calculate the average loss over the training data.
+		avg_train_loss = total_loss / len(train_dataloader)
+		if(params['logging']=='neptune'):
+			neptune.log_metric('avg_train_loss',avg_train_loss)
+		else:
+			print('avg_train_loss',avg_train_loss)
+
+		loss_values.append(avg_train_loss)
+		
+
+	if(params['to_save']==True):
+		
+		# Saving best-practices: if you use defaults names for the model, you can reload it using from_pretrained()
+		if(params['how_train']!='all'):
+			output_dir = 'models_saved/'+params['path_files'][:-1]+'_'+params['language']+'_'+params['how_train']+'_'+str(params['sample_ratio'])
+		else:
+			output_dir = 'models_saved/'+params['path_files'][:-1]+'_'+params['how_train']+'_'+str(params['sample_ratio'])
+		
+
+		if(params['save_only_bert']):
+			model=model.bert
+			output_dir=output_dir+'_only_bert/'
+		else:
+			output_dir=output_dir+'/'
+		print(output_dir)
+		# Create output directory if needed
+		if not os.path.exists(output_dir):
+		    os.makedirs(output_dir)
+
+		print("Saving model to %s" % output_dir)
+
+		# Save a trained model, configuration and tokenizer using `save_pretrained()`.
+		# They can then be reloaded using `from_pretrained()`
+		
+		model_to_save = model.module if hasattr(model, 'module') else model  # Take care of distributed/parallel training
+		model_to_save.save_pretrained(output_dir)
+		tokenizer.save_pretrained(output_dir)
+
+#     print("")
+#     print("Training complete!")
+		
+	if(params['logging']=='neptune'):
+		# neptune.log_metric('val_acc',accuracy_score(true_labels,pred_labels))
+		neptune.stop()
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -242,27 +416,47 @@ def train_model(params):
 
 
 
+# params={
+# 	'logging':'local',
+# 	'language':'Arabic',
+# 	'is_train':True,
+# 	'is_model':True,
+# 	'learning_rate':2e-5,
+# 	'epsilon':1e-8,
+# 	'path_files':'models_saved/multilingual_bert_English_all_multitask_0.1_only_bert/',
+# 	'sample_ratio':100,
+# 	'how_train':'baseline',
+# 	'epochs':5,
+# 	'batch_size':8,
+# 	'to_save':True,
+# 	'weights':[1.0,1.0],
+# 	'what_bert':'weighted',
+# 	'save_only_bert':False,
+# 	'columns_to_consider':['directness','target','group']
+# }
+#### multitask 
 params={
-	'logging':'neptune',
+	'logging':'local',
 	'language':'English',
 	'is_train':True,
 	'is_model':True,
 	'learning_rate':2e-5,
 	'epsilon':1e-8,
-	'path_files':'models_saved/multilingual_bert_English_all_multitask_own_100_only_bert/',
-	'sample_ratio':20,
-	'how_train':'baseline',
+	'path_files':'multilingual_bert/',
+	'sample_ratio':100,
+	'how_train':'all_multitask_own',
 	'epochs':5,
-	'batch_size':8,
+	'batch_size':64,
 	'to_save':True,
 	'weights':[1.0,1.0],
-	'what_bert':'weighted',
-	'save_only_bert':False,
+	'what_bert':'multitask',
+	'save_only_bert':True,
 	'max_length':128,
-	'columns_to_consider':['directness','target','group']
+	'columns_to_consider':['label','is_about_class','is_about_disability','is_about_ethnicity','is_about_gender','is_about_nationality','is_about_religion','is_about_sexual_orientation']
 }
 
 
 
 if __name__=='__main__':
-	train_model(params)
+	train_multitask_model(params)
+	#train_model(params)

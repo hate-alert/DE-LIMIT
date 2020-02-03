@@ -80,3 +80,11 @@ def data_collector(file_names,language,is_train=False,sample_ratio=0.5,type_trai
                 df_test.append(temp)
             df_test=pd.concat(df_test,axis=0)
             return df_test
+        if(type_train=='all_multitask_own'):
+            df_test=[]
+            for file in file_names:
+                temp=pd.read_csv(file)
+                df_test.append(temp)
+            df_test=pd.concat(df_test,axis=0)
+            return df_test
+        
