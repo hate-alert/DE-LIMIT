@@ -11,7 +11,7 @@ batch_size = 8
 MAX_LEN = 512
 
 
-def custom_tokenize(sentences,tokenizer):
+def custom_tokenize(sentences,tokenizer,max_length=512):
     input_ids = []
     # For every sentence...
     for sent in sentences:
@@ -23,7 +23,7 @@ def custom_tokenize(sentences,tokenizer):
         encoded_sent = tokenizer.encode(
                             sent,                      # Sentence to encode.
                             add_special_tokens = True, # Add '[CLS]' and '[SEP]'
-                            max_length = 512,
+                            max_length = max_length,
                             # This function also supports truncation and conversion
                             # to pytorch tensors, but we need to do padding, so we
                             # can't use these features :( .
@@ -50,8 +50,8 @@ def custom_att_masks(input_ids):
         attention_masks.append(att_mask)
     return attention_masks
 
-def combine_features(sentences,tokenizer):
-    input_ids=custom_tokenize(sentences,tokenizer)
+def combine_features(sentences,tokenizer,max_length=512):
+    input_ids=custom_tokenize(sentences,tokenizer,max_length)
     input_ids = pad_sequences(input_ids, dtype="long", 
                           value=0, truncating="post", padding="post")
     print(input_ids.shape)
