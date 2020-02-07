@@ -97,7 +97,7 @@ def train_model(params,best_val_fscore):
 
 	# Create the learning rate scheduler.
 	scheduler = get_linear_schedule_with_warmup(optimizer, 
-												num_warmup_steps = 0, # Default value in run_glue.py
+												num_warmup_steps = int(total_steps/10), # Default value in run_glue.py
 												num_training_steps = total_steps)
 
 	# Set the seed value all over the place to make this reproducible.
@@ -105,7 +105,7 @@ def train_model(params,best_val_fscore):
 	# Store the average loss after each epoch so we can plot them.
 	loss_values = []
 
-	bert_model = params['path_files'][:-1] 
+	bert_model = params['path_files']
 	language  = params['language']
 	name_one=bert_model+"_"+language
 	if(params['logging']=='neptune'):
