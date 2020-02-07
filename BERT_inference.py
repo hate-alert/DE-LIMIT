@@ -32,29 +32,31 @@ else:
 neptune.init(project_name,api_token=api_token,proxies=proxies)
 neptune.set_project(project_name)
 
-print("current gpu device", torch.cuda.current_device())
-torch.cuda.set_device(0)
-print("current gpu device",torch.cuda.current_device())
 
 
 
 
-webhook_url = "https://hooks.slack.com/services/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"
-@slack_sender(webhook_url=webhook_url, channel="#model_messages")
 def Eval_phase(params,which_files='test',model=None):
-	if(which_files=='test'):
-		test_files=glob.glob('full_data/Test/*.csv')
+	if(params['language']=='English'):
+		params['csv_file']='*_full.csv'
+	
+
 	if(which_files=='train'):
-		test_files=glob.glob('full_data/Train/*.csv')
+		path=params['files']+'/train/'+params['csv_file']
+		test_files=glob.glob(path)
 	if(which_files=='val'):
-		test_files=glob.glob('full_data/Val/*.csv')
+		path=params['files']+'/val/'+params['csv_file']
+		test_files=glob.glob(path)
+	if(which_files=='test'):
+		path=params['files']+'/test/'+params['csv_file']
+		test_files=glob.glob(path)
 	
 	'''Testing phase of the model'''
 	print('Loading BERT tokenizer...')
 	tokenizer = BertTokenizer.from_pretrained(params['path_files'], do_lower_case=False)
 
 	if(params['is_model']==True):
-		print("hello")
+		print("model previously passed")
 		model.eval()
 	else:
 		model=select_model(params['what_bert'],params['path_files'],params['weights'])
@@ -62,12 +64,17 @@ def Eval_phase(params,which_files='test',model=None):
 		model.eval()
 
 		
-	df_test=data_collector(test_files,params['language'],is_train=False,sample_ratio=params['sample_ratio'],type_train=params['how_train'])
-	sentences_test = df_test.text.values
+	df_test=data_collector(test_files,params,False)
+	if(params['csv_file']=='*_translated.csv'):
+		sentences_test = df_test.translated.values
+	elif(params['csv_file']=='*_full.csv'):
+		sentences_test = df_test.text.values
+		
+
 	labels_test = df_test.label.values
-	input_test_ids,att_masks_test=combine_features(sentences_test,tokenizer)
+	input_test_ids,att_masks_test=combine_features(sentences_test,tokenizer,params['max_length'])
 	test_dataloader=return_dataloader(input_test_ids,labels_test,att_masks_test,batch_size=params['batch_size'],is_train=False)
-	print("Running Test...")
+	print("Running eval on ",which_files,"...")
 	t0 = time.time()
 
 	# Put the model in evaluation mode--the dropout layers behave differently
@@ -133,10 +140,10 @@ params={
 	'language':'German',
 	'is_train':False,
 	'is_model':False,
-	'learning_rate':5e-5,
+	'learning_rate':2e-5,
 	'epsilon':1e-8,
 	'path_files':'models_saved/multilingual_bert_English_baseline_100/',
-	'sample_ratio':100,
+	'sample_ratio':0.1,
 	'how_train':'baseline',
 	'epochs':5,
 	'batch_size':16,
