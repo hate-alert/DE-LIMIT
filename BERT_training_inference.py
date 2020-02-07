@@ -45,19 +45,30 @@ import os
 
 webhook_url = "https://hooks.slack.com/services/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"
 @slack_sender(webhook_url=webhook_url, channel="#model_messages")
-def train_model(params):
-	train_files=glob.glob('full_data/Train/*.csv')
-	val_files=glob.glob('full_data/Val/*.csv')
+def train_model(params,best_val_fscore):
+	
+	if(params['language']=='English'):
+		params['csv_file']='*_full.csv'
+	
+	train_path=params['files']+'/train/'+params['csv_file']
+	val_path=params['files']+'/val/'+params['csv_file']
 
+
+	train_files=glob.glob(train_path)
+	val_files=glob.glob(val_path)
 	print('Loading BERT tokenizer...')
 	tokenizer = BertTokenizer.from_pretrained(params['path_files'], do_lower_case=False)
-	df_train=data_collector(train_files,params['language'],is_train=True,sample_ratio=params['sample_ratio'],type_train=params['how_train'])
-	df_val=data_collector(val_files,params['language'],is_train=False,sample_ratio=100,type_train=params['how_train'])
+	df_train=data_collector(train_files,params,True)
+	df_val=data_collector(val_files,params,False)
 	
+	if(params['csv_file']=='*_full.csv'):
+		sentences_train = df_train.text.values
+		sentences_val = df_val.text.values
+	elif(params['csv_file']=='*_translated.csv'):
+		sentences_train = df_train.translated.values
+		sentences_val = df_val.translated.values
 	
-	sentences_train = df_train.text.values
 	labels_train = df_train.label.values
-	sentences_val = df_val.text.values
 	labels_val = df_val.label.values
 	#print(df_train['label'].value_counts())
 	label_counts=df_train['label'].value_counts()
@@ -90,19 +101,21 @@ def train_model(params):
 												num_training_steps = total_steps)
 
 	# Set the seed value all over the place to make this reproducible.
-	fix_the_random(seed_val = 42)
+	fix_the_random(seed_val = params['random_seed'])
 	# Store the average loss after each epoch so we can plot them.
 	loss_values = []
 
-	bert_model = params['path_files'][:-1]
-	langauge  = params['language']
-	name_one=bert_model+"_"+langauge
+	bert_model = params['path_files'][:-1] 
+	language  = params['language']
+	name_one=bert_model+"_"+language
 	if(params['logging']=='neptune'):
 		neptune.create_experiment(name_one,params=params,send_hardware_metrics=False,run_monitoring_thread=False)
 		neptune.append_tag(bert_model)
-		neptune.append_tag(langauge)
+		neptune.append_tag(language)
 		
-	# For each epoch...
+	# For each epo=ch...
+	best_val_fscore=best_val_fscore
+
 	for epoch_i in range(0, params['epochs']):
 		print("")
 		print('======== Epoch {:} / {:} ========'.format(epoch_i + 1, params['epochs']))
@@ -168,44 +181,23 @@ def train_model(params):
 
 		# Store the loss value for plotting the learning curve.
 		loss_values.append(avg_train_loss)
-		fscore,accuracy=Eval_phase(params,'val',model)		
-		
+		val_fscore,val_accuracy=Eval_phase(params,'val',model)		
+		test_fscore,test_accuracy=Eval_phase(params,'test',model)
+
 		#Report the final accuracy for this validation run.
 		if(params['logging']=='neptune'):	
-			neptune.log_metric('val_fscore',fscore)
-			neptune.log_metric('val_acc',accuracy)
-	
+			neptune.log_metric('val_fscore',val_fscore)
+			neptune.log_metric('val_acc',val_accuracy)
+			# neptune.log_metric('test_fscore',test_fscore)
+			# neptune.log_metric('test_accuracy',test_accuracy)
+		if(val_fscore > best_val_fscore):
+			print(val_fscore,best_val_fscore)
+			best_val_fscore=val_fscore
+			save_model(model,tokenizer,params)
+#   		
 
 
-	if(params['to_save']==True):
-		
-		# Saving best-practices: if you use defaults names for the model, you can reload it using from_pretrained()
-		if(params['how_train']!='all'):
-			output_dir = 'models_saved/'+params['path_files'][:-1]+'_'+params['language']+'_'+params['how_train']+'_'+str(params['sample_ratio'])
-		else:
-			output_dir = 'models_saved/'+params['path_files'][:-1]+'_'+params['how_train']+'_'+str(params['sample_ratio'])
-		
-
-		if(params['save_only_bert']):
-			model=model.bert
-			output_dir=output_dir+'_only_bert/'
-		else:
-			output_dir=output_dir+'/'
-		print(output_dir)
-		# Create output directory if needed
-		if not os.path.exists(output_dir):
-		    os.makedirs(output_dir)
-
-		print("Saving model to %s" % output_dir)
-
-		# Save a trained model, configuration and tokenizer using `save_pretrained()`.
-		# They can then be reloaded using `from_pretrained()`
-		
-		model_to_save = model.module if hasattr(model, 'module') else model  # Take care of distributed/parallel training
-		model_to_save.save_pretrained(output_dir)
-		tokenizer.save_pretrained(output_dir)
-
-#     print("")
+	  
 #     print("Training complete!")
 	if(params['save_only_bert']==False):
 		fscore,accuracy=Eval_phase(params,'test',model)
@@ -217,8 +209,9 @@ def train_model(params):
 		
 		# neptune.log_metric('val_acc',accuracy_score(true_labels,pred_labels))
 		neptune.stop()
-	return fscore
-
+	del model
+	torch.cuda.empty_cache()
+	return fscore,best_val_fscore
 
 
 
@@ -237,6 +230,9 @@ def train_model(params):
 # 'weights': weights for binary classifier
 # 'what_bert': type of bert possible option {'normal','weighted'}
 # 'save_only_bert': if only bert (without classifier) should be used 
+# 'files': parent folder,
+# 'csv_file':pattern of the file,
+# 'samp_strategy':'how to select the samples if less data used for training,
 
 
 
@@ -248,21 +244,71 @@ params={
 	'is_train':True,
 	'is_model':True,
 	'learning_rate':2e-5,
+	'files':'only_hate',
+	'csv_file':'*_translated.csv',
+	'samp_strategy':'stratified',
 	'epsilon':1e-8,
-	'path_files':'models_saved/multilingual_bert_English_all_multitask_own_100_only_bert/',
-	'sample_ratio':20,
+	'path_files':'multilingual_bert',
+	'take_ratio':False,
+	'sample_ratio':16,
 	'how_train':'baseline',
 	'epochs':5,
-	'batch_size':8,
+	'batch_size':16,
 	'to_save':True,
 	'weights':[1.0,1.0],
-	'what_bert':'weighted',
+	'what_bert':'normal',
 	'save_only_bert':False,
 	'max_length':128,
-	'columns_to_consider':['directness','target','group']
+	'columns_to_consider':['directness','target','group'],
+	'random_seed':42
+
 }
 
 
 
 if __name__=='__main__':
-	train_model(params)
+
+	lang_map={'Arabic':'ar','French':'fr','Portugese':'pt','Spanish':'es','English':'en','Indonesian':'id','Italian':'it','German':'de','Polish':'pl'}
+	torch.cuda.set_device(0)
+
+	lang_list=list(lang_map.keys())
+	for lang in lang_list[0:3]:
+		params['language']=lang
+		for sample_ratio,take_ratio in [(16,False),(32,False),(64,False),(128,False),(256,False)]:
+			count=0
+			params['take_ratio']=take_ratio
+			params['sample_ratio']=sample_ratio
+			best_val_fscore=0
+			for lr in [2e-5,3e-5,5e-5]:
+				params['learning_rate']=lr
+				for ss in ['stratified','equal']:
+					params['samp_strategy']=ss
+					for seed in [2018,2019,2020,2021,2022]:
+						params['random_seed']=seed
+						count+=1
+						_,best_val_fscore=train_model(params,best_val_fscore)
+
+
+		best_val_fscore=00
+		for lr in [2e-5,3e-5,5e-5]:
+			params['learning_rate']=lr
+			params['samp_strategy']='stratified'
+			for seed in [2018,2019,2020,2021,2022][:1]:
+				params['random_seed']=seed
+				_,best_val_fscore=train_model(params,best_val_fscore)
+		print('============================')
+		print('Model for Language',lang,'is trained')
+		print('============================')
+		
+	# lang_map={'Arabic':'ar','French':'fr','Portugese':'pt','Spanish':'es','English':'en','Indonesian':'id','Italian':'it','German':'de','Polish':'pl'}
+	
+	# lang_list=list(lang_map.keys())
+	# for i in range(1,len(lang_list),2):
+
+	# 	params['language']=lang_list[i]
+	# 	print(params['language'])
+	# 	print("current gpu device", torch.cuda.current_device())
+	# 	torch.cuda.set_device(1)
+	# 	print("current gpu device",torch.cuda.current_device())
+	# 	train_model(params)
+		

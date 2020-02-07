@@ -20,19 +20,36 @@ def custom_tokenize(sentences,tokenizer,max_length=512):
         #   (2) Prepend the `[CLS]` token to the start.
         #   (3) Append the `[SEP]` token to the end.
         #   (4) Map tokens to their IDs.
-        encoded_sent = tokenizer.encode(
-                            sent,                      # Sentence to encode.
-                            add_special_tokens = True, # Add '[CLS]' and '[SEP]'
-                            max_length = max_length,
-                            # This function also supports truncation and conversion
-                            # to pytorch tensors, but we need to do padding, so we
-                            # can't use these features :( .
-                            #max_length = 128,          # Truncate all sentences.
-                            #return_tensors = 'pt',     # Return pytorch tensors.
-                       )
+        try:
 
-        # Add the encoded sentence to the list.
+            encoded_sent = tokenizer.encode(
+                                sent,                      # Sentence to encode.
+                                add_special_tokens = True, # Add '[CLS]' and '[SEP]'
+                                max_length = max_length,
+                                # This function also supports truncation and conversion
+                                # to pytorch tensors, but we need to do padding, so we
+                                # can't use these features :( .
+                                #max_length = 128,          # Truncate all sentences.
+                                #return_tensors = 'pt',     # Return pytorch tensors.
+                           )
+
+            # Add the encoded sentence to the list.
+            
+        except ValueError:
+            encoded_sent = tokenizer.encode(
+                                ' ',                      # Sentence to encode.
+                                add_special_tokens = True, # Add '[CLS]' and '[SEP]'
+                                max_length = max_length,
+                                # This function also supports truncation and conversion
+                                # to pytorch tensors, but we need to do padding, so we
+                                # can't use these features :( .
+                                #max_length = 128,          # Truncate all sentences.
+                                #return_tensors = 'pt',     # Return pytorch tensors.
+                           )
+              ### decide what to later
+        
         input_ids.append(encoded_sent)
+
     return input_ids
 
 def custom_att_masks(input_ids):
