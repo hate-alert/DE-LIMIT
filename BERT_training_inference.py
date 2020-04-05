@@ -2,7 +2,6 @@ import transformers
 import torch
 import neptune
 from knockknock import slack_sender
-
 from api_config import project_name,proxies,api_token
 import glob 
 from transformers import get_linear_schedule_with_warmup
@@ -19,24 +18,24 @@ from tqdm import tqdm
 from BERT_inference import *
 import os
 
-# # If there's a GPU available...
-# if torch.cuda.is_available():    
-#     # Tell PyTorch to use the GPU.    
-#     device = torch.device("cuda")
-#     print('There are %d GPU(s) available.' % torch.cuda.device_count())
-#     print('We will use the GPU:', torch.cuda.get_device_name(0))
-# # If not...
-# else:
-#     print('No GPU available, using the CPU instead.')
-#     device = torch.device("cpu")
+# If there's a GPU available...
+if torch.cuda.is_available():    
+    # Tell PyTorch to use the GPU.    
+    device = torch.device("cuda")
+    print('There are %d GPU(s) available.' % torch.cuda.device_count())
+    print('We will use the GPU:', torch.cuda.get_device_name(0))
+# If not...
+else:
+    print('No GPU available, using the CPU instead.')
+    device = torch.device("cpu")
 
 
-# neptune.init(project_name,api_token=api_token,proxies=proxies)
-# neptune.set_project(project_name)
+neptune.init(project_name,api_token=api_token,proxies=proxies)
+neptune.set_project(project_name)
 
-# print("current gpu device", torch.cuda.current_device())
-# torch.cuda.set_device(0)
-# print("current gpu device",torch.cuda.current_device())
+print("current gpu device", torch.cuda.current_device())
+torch.cuda.set_device(0)
+print("current gpu device",torch.cuda.current_device())
 	   
 
 
@@ -70,7 +69,6 @@ def train_model(params,best_val_fscore):
 	
 	labels_train = df_train.label.values
 	labels_val = df_val.label.values
-	#print(df_train['label'].value_counts())
 	label_counts=df_train['label'].value_counts()
 	print(label_counts)
 	label_weights = [ (len(df_train))/label_counts[0],len(df_train)/label_counts[1] ]
@@ -193,6 +191,7 @@ def train_model(params,best_val_fscore):
 		if(val_fscore > best_val_fscore):
 			print(val_fscore,best_val_fscore)
 			best_val_fscore=val_fscore
+
 			save_model(model,tokenizer,params)
 #   		
 
@@ -269,7 +268,7 @@ params={
 if __name__=='__main__':
 
 	lang_map={'Arabic':'ar','French':'fr','Portugese':'pt','Spanish':'es','English':'en','Indonesian':'id','Italian':'it','German':'de','Polish':'pl'}
-	torch.cuda.set_device(0)
+	# torch.cuda.set_device(0)
 
 	lang_list=list(lang_map.keys())
 	for lang in lang_list[0:3]:
@@ -299,16 +298,4 @@ if __name__=='__main__':
 		print('============================')
 		print('Model for Language',lang,'is trained')
 		print('============================')
-		
-	# lang_map={'Arabic':'ar','French':'fr','Portugese':'pt','Spanish':'es','English':'en','Indonesian':'id','Italian':'it','German':'de','Polish':'pl'}
-	
-	# lang_list=list(lang_map.keys())
-	# for i in range(1,len(lang_list),2):
-
-	# 	params['language']=lang_list[i]
-	# 	print(params['language'])
-	# 	print("current gpu device", torch.cuda.current_device())
-	# 	torch.cuda.set_device(1)
-	# 	print("current gpu device",torch.cuda.current_device())
-	# 	train_model(params)
 		
