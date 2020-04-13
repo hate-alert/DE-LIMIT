@@ -1,3 +1,4 @@
+# Necessary imports
 import transformers 
 import torch
 import neptune
@@ -18,6 +19,7 @@ from sklearn.metrics import accuracy_score,f1_score
 from tqdm import tqdm
 import os
 
+# If gpu is available
 if torch.cuda.is_available():    
     # Tell PyTorch to use the GPU.    
     device = torch.device("cuda")
@@ -29,18 +31,22 @@ else:
     device = torch.device("cpu")
 
 
+# Initialize neptune for logging
 neptune.init(project_name,api_token=api_token,proxies=proxies)
 neptune.set_project(project_name)
 
 
-
-
-
+# The function for evaluating
+# Params - see below for description
+# which_files - what files to test on - {'train','val','test'}
+# model - the model to use if passed. If model==None, the model is loaded based on the params passed.
 def Eval_phase(params,which_files='test',model=None):
+
+	# For english, there is no translation, hence use full dataset.
 	if(params['language']=='English'):
 		params['csv_file']='*_full.csv'
 	
-
+	# Load the files to test on
 	if(which_files=='train'):
 		path=params['files']+'/train/'+params['csv_file']
 		test_files=glob.glob(path)
@@ -53,8 +59,12 @@ def Eval_phase(params,which_files='test',model=None):
 	
 	'''Testing phase of the model'''
 	print('Loading BERT tokenizer...')
+	# Load bert tokenizer
 	tokenizer = BertTokenizer.from_pretrained(params['path_files'], do_lower_case=False)
 
+	# If model is passed, then use the given model. Else load the model from the saved location
+	# Put the model in evaluation mode--the dropout layers behave differently
+	# during evaluation.
 	if(params['is_model']==True):
 		print("model previously passed")
 		model.eval()
@@ -63,7 +73,7 @@ def Eval_phase(params,which_files='test',model=None):
 		model.cuda()
 		model.eval()
 
-		
+	# Load the dataset
 	df_test=data_collector(test_files,params,False)
 	if(params['csv_file']=='*_translated.csv'):
 		sentences_test = df_test.translated.values
@@ -72,19 +82,17 @@ def Eval_phase(params,which_files='test',model=None):
 		
 
 	labels_test = df_test.label.values
+	# Encode the dataset using the tokenizer
 	input_test_ids,att_masks_test=combine_features(sentences_test,tokenizer,params['max_length'])
 	test_dataloader=return_dataloader(input_test_ids,labels_test,att_masks_test,batch_size=params['batch_size'],is_train=False)
 	print("Running eval on ",which_files,"...")
 	t0 = time.time()
 
-	# Put the model in evaluation mode--the dropout layers behave differently
-	# during evaluation.
 	# Tracking variables 
 	eval_loss, eval_accuracy = 0, 0
 	nb_eval_steps, nb_eval_examples = 0, 0
 	true_labels=[]
 	pred_labels=[]
-	# Evaluate data for one epoch
 	for batch in test_dataloader:
 		# Add batch to GPU
 		batch = tuple(t.to(device) for t in batch)
@@ -112,9 +120,11 @@ def Eval_phase(params,which_files='test',model=None):
 		# Track the number of batches
 		nb_eval_steps += 1
 
+	# Get the accuracy and macro f1 scores
 	testf1=f1_score(true_labels, pred_labels, average='macro')
 	testacc=accuracy_score(true_labels,pred_labels)
 
+	# Log the metrics obtained
 	if(params['logging']!='neptune' or params['is_model'] == True):
 		# Report the final accuracy for this validation run.
 		print(" Accuracy: {0:.2f}".format(testacc))
@@ -134,7 +144,7 @@ def Eval_phase(params,which_files='test',model=None):
 	
 	return testf1,testacc
 
-
+# Params used here 
 params={
 	'logging':'locals',
 	'language':'German',
