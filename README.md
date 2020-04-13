@@ -39,4 +39,4 @@ Make sure to use **Python3** when running the scripts. The package requirements 
 4. **CNN+GRU Baseline**
 
 5. **LASER+LR baseline**
-6. **LASER+LR all_but_one
+6. **LASER+LR all_but_one**
