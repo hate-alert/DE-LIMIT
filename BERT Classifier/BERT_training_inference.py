@@ -1,3 +1,5 @@
+#Necessary imports
+
 import transformers 
 import torch
 import neptune
@@ -18,6 +20,7 @@ from tqdm import tqdm
 from BERT_inference import *
 import os
 
+
 # If there's a GPU available...
 if torch.cuda.is_available():    
     # Tell PyTorch to use the GPU.    
@@ -29,37 +32,41 @@ else:
     print('No GPU available, using the CPU instead.')
     device = torch.device("cpu")
 
-
-neptune.init(project_name,api_token=api_token,proxies=proxies)
-neptune.set_project(project_name)
-
+# Set the gpu device 
 print("current gpu device", torch.cuda.current_device())
 torch.cuda.set_device(0)
 print("current gpu device",torch.cuda.current_device())
-	   
 
 
-
-
+# Initialize neptune for logging the parameters and metrics
+neptune.init(project_name,api_token=api_token,proxies=proxies)
+neptune.set_project(project_name)
+  
+# The main function that does the training
 
 webhook_url = "https://hooks.slack.com/services/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"
 @slack_sender(webhook_url=webhook_url, channel="#model_messages")
 def train_model(params,best_val_fscore):
 	
+	# In case of english languages, translation is the origin data itself.
 	if(params['language']=='English'):
 		params['csv_file']='*_full.csv'
 	
+
 	train_path=params['files']+'/train/'+params['csv_file']
 	val_path=params['files']+'/val/'+params['csv_file']
 
-
+	# Load the training and validation datasets
 	train_files=glob.glob(train_path)
 	val_files=glob.glob(val_path)
+	
+	#Load the bert tokenizer
 	print('Loading BERT tokenizer...')
 	tokenizer = BertTokenizer.from_pretrained(params['path_files'], do_lower_case=False)
 	df_train=data_collector(train_files,params,True)
 	df_val=data_collector(val_files,params,False)
 	
+	# Get the comment texts and corresponding labels
 	if(params['csv_file']=='*_full.csv'):
 		sentences_train = df_train.text.values
 		sentences_val = df_val.text.values
@@ -74,16 +81,20 @@ def train_model(params,best_val_fscore):
 	label_weights = [ (len(df_train))/label_counts[0],len(df_train)/label_counts[1] ]
 	print(label_weights)
 	
+	# Select the required bert model. Refer below for explanation of the parameter values.
 	model=select_model(params['what_bert'],params['path_files'],params['weights'])
 	# Tell pytorch to run this model on the GPU.
 	model.cuda()
+
+	# Do the required encoding using the bert tokenizer
 	input_train_ids,att_masks_train=combine_features(sentences_train,tokenizer,params['max_length'])
-
-
 	input_val_ids,att_masks_val=combine_features(sentences_val,tokenizer,params['max_length'])
+
+	# Create dataloaders for both the train and validation datasets.
 	train_dataloader = return_dataloader(input_train_ids,labels_train,att_masks_train,batch_size=params['batch_size'],is_train=params['is_train'])
 	validation_dataloader=return_dataloader(input_val_ids,labels_val,att_masks_val,batch_size=params['batch_size'],is_train=False)
 	
+	# Initialize AdamW optimizer.
 	optimizer = AdamW(model.parameters(),
 				  lr = params['learning_rate'], # args.learning_rate - default is 5e-5, our notebook had 2e-5
 				  eps = params['epsilon'] # args.adam_epsilon  - default is 1e-8.
@@ -103,6 +114,7 @@ def train_model(params,best_val_fscore):
 	# Store the average loss after each epoch so we can plot them.
 	loss_values = []
 
+	# Create a new experiment in neptune for this run. 
 	bert_model = params['path_files']
 	language  = params['language']
 	name_one=bert_model+"_"+language
@@ -111,9 +123,10 @@ def train_model(params,best_val_fscore):
 		neptune.append_tag(bert_model)
 		neptune.append_tag(language)
 		
-	# For each epo=ch...
+	# The best val fscore obtained till now, for the purpose of hyper parameter finetuning.
 	best_val_fscore=best_val_fscore
 
+	# For each epoch...
 	for epoch_i in range(0, params['epochs']):
 		print("")
 		print('======== Epoch {:} / {:} ========'.format(epoch_i + 1, params['epochs']))
@@ -143,6 +156,7 @@ def train_model(params,best_val_fscore):
 			# (source: https://stackoverflow.com/questions/48001598/why-do-we-need-to-call-zero-grad-in-pytorch)
 			model.zero_grad()        
 
+			# Get the model outputs for this batch.
 			outputs = model(b_input_ids, 
 						token_type_ids=None, 
 						attention_mask=b_input_mask, 
@@ -179,49 +193,46 @@ def train_model(params,best_val_fscore):
 
 		# Store the loss value for plotting the learning curve.
 		loss_values.append(avg_train_loss)
+		# Compute the metrics on the validation and test sets.
 		val_fscore,val_accuracy=Eval_phase(params,'val',model)		
 		test_fscore,test_accuracy=Eval_phase(params,'test',model)
 
-		#Report the final accuracy for this validation run.
+		#Report the final accuracy and fscore for this validation run.
 		if(params['logging']=='neptune'):	
 			neptune.log_metric('val_fscore',val_fscore)
 			neptune.log_metric('val_acc',val_accuracy)
-			# neptune.log_metric('test_fscore',test_fscore)
-			# neptune.log_metric('test_accuracy',test_accuracy)
+			neptune.log_metric('test_fscore',test_fscore)
+			neptune.log_metric('test_accuracy',test_accuracy)
+
+		# Save the model only if the validation fscore improves. After all epochs, the best model is the final saved one. 
 		if(val_fscore > best_val_fscore):
 			print(val_fscore,best_val_fscore)
 			best_val_fscore=val_fscore
 
-			save_model(model,tokenizer,params)
-#   		
+			save_model(model,tokenizer,params) 		
 
-
-	  
-#     print("Training complete!")
-	if(params['save_only_bert']==False):
-		fscore,accuracy=Eval_phase(params,'test',model)
-
-		
 	if(params['logging']=='neptune'):
-		neptune.log_metric('test_fscore',fscore)
-		neptune.log_metric('test_accuracy',accuracy)
-		
-		# neptune.log_metric('val_acc',accuracy_score(true_labels,pred_labels))
-		neptune.stop()
+		neptune.stop()	
 	del model
 	torch.cuda.empty_cache()
 	return fscore,best_val_fscore
 
 
 
+# Explanation of all the params used below. 
+
 # 'logging':where logging {'local','neptune'}
-# 'language': language {'English','Polish','Portugese','German','Indonesian','Italian','Arabic'}
+# 'language': language {'Arabic', 'English','German','Indonesian','Italian','Polish','Portugese','Spanish','French'}
 # 'is_train': whether train dataset 
 # 'is_model':is model 
 # 'learning_rate':Adam parameter lr
+# 'files': Path to the dataset folder ( containing the train, val and test subfolders)
+# 'csv_file': The regex used by glob to load the datasets. {'*_full.csv','*_translated.csv'} for untranslated and translated datasets respectively
+# 'samp_strategy': The way in which we sample the training data points. {'stratified'}
 # 'epsilon': Adam parameter episilon
-# 'path_files':bert path from the bert model should be loaded,
-# 'sample_ratio':ratio of the training data to take
+# 'path_files':bert path from where the bert model should be loaded,
+# 'take_ratio': Whether the sample ratio is ratio of total points or absolute number of points needed.
+# 'sample_ratio':ratio or the number of the training data points to take
 # 'how_train':how the bert is trained possible option {'all','baseline','all_but_one'}
 # 'epochs': number of epochs to train bert
 # 'batch_size': batch size
@@ -229,13 +240,8 @@ def train_model(params,best_val_fscore):
 # 'weights': weights for binary classifier
 # 'what_bert': type of bert possible option {'normal','weighted'}
 # 'save_only_bert': if only bert (without classifier) should be used 
-# 'files': parent folder,
-# 'csv_file':pattern of the file,
-# 'samp_strategy':'how to select the samples if less data used for training,
-
-
-
-
+# 'max_length': maximum length for input tokenization
+# 'random_seed': seed value for reproducibility
 
 params={
 	'logging':'neptune',
@@ -258,7 +264,6 @@ params={
 	'what_bert':'normal',
 	'save_only_bert':False,
 	'max_length':128,
-	'columns_to_consider':['directness','target','group'],
 	'random_seed':42
 
 }
@@ -267,7 +272,8 @@ params={
 
 if __name__=='__main__':
 
-	lang_map={'Arabic':'ar','French':'fr','Portugese':'pt','Spanish':'es','English':'en','Indonesian':'id','Italian':'it','German':'de','Polish':'pl'}
+	lang_map={'Arabic':'ar','French':'fr','Portugese':'pt','Spanish':'es','English':'en','Indonesian':'id','Italian':'it','German':'de','Polish':'pl','Spanish':
+	'es','French':'fr'}
 	# torch.cuda.set_device(0)
 
 	lang_list=list(lang_map.keys())
