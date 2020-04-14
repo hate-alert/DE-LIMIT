@@ -57,8 +57,7 @@ def load_vec(emb_path, nmax=50000):
     return embeddings, id2word, word2id
 
 # Main training function
-webhook_url = "https://hooks.slack.com/services/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"
-@slack_sender(webhook_url=webhook_url, channel="#model_messages")
+
 def cnn_gru_train_model(params):
     # Load the datasets
     train_path=params['files']+'/train/'+params['csv_file']
