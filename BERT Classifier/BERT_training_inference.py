@@ -250,7 +250,7 @@ params={
 	'csv_file':'*_full.csv',
 	'samp_strategy':'stratified',
 	'epsilon':1e-8,
-	'path_files':'../multilingual_bert',
+	'path_files':'multilingual_bert',
 	'take_ratio':False,
 	'sample_ratio':16,
 	'how_train':'baseline',
