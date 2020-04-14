@@ -26,22 +26,22 @@ Make sure to use **Python3** when running the scripts. The package requirements 
 ***Instructions for training the classifier models***
 ------------------------------------------
 
-1. **mBERT Baseline**
+1. **mBERT Baseline:**
 	This setting consists of using multilingual bert model with the same language dataset for training and testing. Refer to `BERT Classifier` folder for the codes and usage instructions.
 
-2. **mBERT All_but_one**
+2. **mBERT All_but_one:**
 	This setting consists of using multilingual bert model with training dataset from multiple languages and validation and test from a single target language. Refer to `BERT Classifier` folder for the codes and usage instructions.
 
-3. **Translation + BERT Baseline**
+3. **Translation + BERT Baseline:**
 	This setting consists of translating the other language datasets to english and finetuning the bert-base model using this translated datasets. Refer to `BERT Classifier` folder for the codes and usage instructions.
 
-4. **CNN+GRU Baseline**
+4. **CNN+GRU Baseline:**
 	This setting consists of using MUSE word embeddings along with a CNN-GRU based model, and training and testing on the same language. Refer to `CNN_GRU` folder for the codes and usage instructions.
 	
-5. **LASER+LR baseline**
+5. **LASER+LR baseline:**
 	This setting consists of training a logistic regression model on the LASER embeddings of the dataset. The training and testing dataset are from the same language. Refer to `LASER+LR` folder for the codes and usage instructions.
  
-6. **LASER+LR all_but_one**
+6. **LASER+LR all_but_one:**
 	This setting consists of training a logistic regression model on the LASER embeddings of the dataset. The dataset from other languages are also used to train the LR model. Refer to `LASER+LR` folder for the codes and usage instructions.
 	
 	
@@ -49,7 +49,7 @@ Make sure to use **Python3** when running the scripts. The package requirements 
 1. Muse embeddding are downloaded and extracted using the code from [MUSE github repository](https://github.com/facebookresearch/MUSE)
 2. For finetuning BERT this [blog](https://mccormickml.com/2019/07/22/BERT-fine-tuning/)  by Chris McCormick is used and we also referred [Transformers github repo](https://github.com/huggingface/transformers)
 3. For CNN-GRU model we used the original [repo](https://github.com/ziqizhang/chase) for reference 
-4. For generating the LASER embeddings of the dataset, we used the code from [LASER github repository]()
+4. For generating the LASER embeddings of the dataset, we used the code from [LASER github repository](https://github.com/facebookresearch/LASER)
 
 ### Todos
 - [ ] Upload the our models to [transformers community](https://huggingface.co/models) to make them public
