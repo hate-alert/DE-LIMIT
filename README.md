@@ -6,8 +6,8 @@
 ~~~
 
 ./Dataset             --> Contains the dataset
-./BERT_Classifier  	  --> Contains the codes for BERT classifiers performing binary classifier on the dataset
-./LASER+LR 			  --> Containes the codes for Logistic regression classifier used on top of LASER embeddings
+./BERT_Classifier     --> Contains the codes for BERT classifiers performing binary classifier on the dataset
+./LASER+LR 	      --> Containes the codes for Logistic regression classifier used on top of LASER embeddings
 ./Translation         --> Code for translating the Non-English datasets to English.
 
 ~~~
