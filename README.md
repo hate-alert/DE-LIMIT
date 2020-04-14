@@ -50,3 +50,8 @@ Make sure to use **Python3** when running the scripts. The package requirements 
 6. **LASER+LR all_but_one**
 	1. Similar to the above case, generate the laser embeddings and place them in respective directories in the `Dataset/embedding` folder. 
 	2. Use the files `LASER+LR/All_but_one.ipynb` and `LASER+LR/All.ipynb` to run the all_but_one experiments. The `All_but_one.ipynb` notebook contains code for running the all_but_one experiment using a sample of target language points (including zero-shot case). The `All.ipynb` file contains codes for running the experiment using all the datasets available, i.e. 100% of training dataset. 
+	
+### Blogs and github repos which we used for reference :angel:
+1. Muse embeddding are downloaded and extracted using the code from [MUSE github repository](https://github.com/facebookresearch/MUSE)
+2. For finetuning BERT this [blog](https://mccormickml.com/2019/07/22/BERT-fine-tuning/)  by Chris McCormick is used and we also referred from [Transformers github repo](https://github.com/huggingface/transformers)
+3. For CNN-GRU model we used the original [repo](https://github.com/ziqizhang/chase) for reference 
