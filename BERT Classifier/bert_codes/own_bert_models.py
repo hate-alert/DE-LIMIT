@@ -1,7 +1,7 @@
 from transformers.modeling_bert import *
 
 
-
+# Function to select model based on parameters passed
 def select_model(type_of_model,path,weights=None,label_list=None):
     if(type_of_model=='weighted'):
         model = SC_weighted_BERT.from_pretrained(
@@ -32,10 +32,7 @@ def select_model(type_of_model,path,weights=None,label_list=None):
 
         
 
-
-
-
-
+# Class for weighted bert for sentence classification
 class SC_weighted_BERT(BertPreTrainedModel):
     def __init__(self, config,weights):
         super().__init__(config)
@@ -85,7 +82,7 @@ class SC_weighted_BERT(BertPreTrainedModel):
 
         return outputs  # (loss), logits, (hidden_states), (attentions)
 
-
+# BERT for multitask learning
 class BertForMultitask(BertPreTrainedModel):
     def __init__(self, config, label_uniques):
         super().__init__(config)

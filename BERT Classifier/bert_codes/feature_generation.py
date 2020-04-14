@@ -5,12 +5,9 @@ from torch.utils.data import TensorDataset, DataLoader, RandomSampler, Sequentia
 import numpy as np
 batch_size = 8
 
-# Set the maximum sequence length.
-# I've chosen 64 somewhat arbitrarily. It's slightly larger than the
-# maximum training sentence length of 47...
 MAX_LEN = 512
 
-
+# Function to tokenize given sentences
 def custom_tokenize(sentences,tokenizer,max_length=512):
     input_ids = []
     # For every sentence...
@@ -52,6 +49,7 @@ def custom_tokenize(sentences,tokenizer,max_length=512):
 
     return input_ids
 
+# Create mask for the given inputs.
 def custom_att_masks(input_ids):
     attention_masks = []
 
@@ -67,6 +65,7 @@ def custom_att_masks(input_ids):
         attention_masks.append(att_mask)
     return attention_masks
 
+# Truncate and Tokenize sentences, then pad them
 def combine_features(sentences,tokenizer,max_length=512):
     input_ids=custom_tokenize(sentences,tokenizer,max_length)
     input_ids = pad_sequences(input_ids, dtype="long", 
@@ -75,6 +74,7 @@ def combine_features(sentences,tokenizer,max_length=512):
     att_masks=custom_att_masks(input_ids)
     return input_ids,att_masks
 
+# Generate pytorch data loader with the given dataset.
 def return_dataloader(input_ids,labels,att_masks,batch_size=8,is_train=False):
     inputs = torch.tensor(input_ids)
     labels = torch.tensor(labels,dtype=torch.long)

@@ -9,7 +9,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.pipeline import Pipeline
 import os
 
-
+# Function to set the random seeds for reproducibility
 def fix_the_random(seed_val = 42):
     random.seed(seed_val)
     np.random.seed(seed_val)
@@ -70,7 +70,7 @@ class MultiColumnLabelEncoder:
 
 
 
-    
+# Function to save models
 def save_model(model,tokenizer,params):
     if(params['to_save']==True):   
         if(params['csv_file']=='*_full.csv'):
