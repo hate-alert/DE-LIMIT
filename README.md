@@ -1,7 +1,12 @@
-# DELIMIT--DeEpLearning models for MultIlingual haTespeech
+[![HitCount](http://hits.dwyl.com/punyajoy/DE-LIMIT.svg)](http://hits.dwyl.com/punyajoy/DE-LIMIT)
+[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/punyajoy/DE-LIMIT/issues)
+# Deeplearning models for multilingual hate speech
+
+:portugal: :saudi_arabia: :poland: :indonesia: :it: Solving the problem of hate speech detection in **9 languages** across **16 datasets**.
+:fr: :us: :es: :de:
 
 ------------------------------------------
-***Folder Description***
+***Folder Description*** :point_left:
 ------------------------------------------
 ~~~
 
@@ -50,3 +55,17 @@ Make sure to use **Python3** when running the scripts. The package requirements 
 6. **LASER+LR all_but_one**
 	1. Similar to the above case, generate the laser embeddings and place them in respective directories in the `Dataset/embedding` folder. 
 	2. Use the files `LASER+LR/All_but_one.ipynb` and `LASER+LR/All.ipynb` to run the all_but_one experiments. The `All_but_one.ipynb` notebook contains code for running the all_but_one experiment using a sample of target language points (including zero-shot case). The `All.ipynb` file contains codes for running the experiment using all the datasets available, i.e. 100% of training dataset. 
+	
+### Blogs and github repos which we used for reference :angel:
+1. Muse embeddding are downloaded and extracted using the code from [MUSE github repository](https://github.com/facebookresearch/MUSE)
+2. For finetuning BERT this [blog](https://mccormickml.com/2019/07/22/BERT-fine-tuning/)  by Chris McCormick is used and we also referred [Transformers github repo](https://github.com/huggingface/transformers)
+3. For CNN-GRU model we used the original [repo](https://github.com/ziqizhang/chase) for reference 
+
+### Todos
+- [ ] Upload the our models to [transformers community](https://huggingface.co/models) to make them public
+- [ ] Add arxiv paper link.
+- [ ] Create an interface for **social scientists** where they can use our models easily with their data
+- [ ] Create a pull request to add the models to official [transformers repo](https://github.com/huggingface/transformers)
+
+
+#####  :thumbsup: The repo is still in active developements. Feel free to create an issue !!  :thumbsup:
