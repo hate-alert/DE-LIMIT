@@ -2,7 +2,6 @@
 import transformers 
 import torch
 import neptune
-from knockknock import slack_sender
 
 from api_config import project_name,proxies,api_token
 import glob 
