@@ -2,7 +2,7 @@
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/punyajoy/DE-LIMIT/issues)
 # Deeplearning models for multilingual hate speech
 
-:portugal: :saudi_arabia: :poland: :indonesia: :it: Solving the problem of hate speech detection in **9 languages** across **16 datasets**.
+:portugal: :saudi_arabia: :poland: :indonesia: :it: Solving the problem of **hate speech detection** in **9 languages** across **16 datasets**.
 :fr: :us: :es: :de:
 
 ------------------------------------------
@@ -12,7 +12,7 @@
 
 ./Dataset             --> Contains the dataset related files.
 ./BERT_Classifier     --> Contains the codes for BERT classifiers performing binary classifier on the dataset
-./CNN_GRU			  --> Contains the codes for CNN-GRU model		
+./CNN_GRU	      --> Contains the codes for CNN-GRU model		
 ./LASER+LR 	      --> Containes the codes for Logistic regression classifier used on top of LASER embeddings
 
 ~~~
@@ -21,15 +21,25 @@
 
 Make sure to use **Python3** when running the scripts. The package requirements can be obtained by running `pip install -r requirements.txt`.
 
+------------------------------------------
+***Dataset***
+------------------------------------------
+Check out the `Dataset ` folder to know more about how we curated the dataset for different languages.  :warning: There are few datasets which requires crawling them hence we can gurantee the retrieval of all the datapoints as tweets may get deleted.
+:warning:
 
+-----------------------------------------
+***Models used for our this task***
 ------------------------------------------
-***Instructions for training the classifier models***
-------------------------------------------
+We release the code for train/finetuning the following models along with their hyperparamters.
+
+:1st_place_medal: `best for high resource language` , :medal_sports: `best for low resource language`
+
+:airplane: `fastest to train`  , :small_airplane: `slowest to train`
 
 1. **mBERT Baseline:**
 	This setting consists of using multilingual bert model with the same language dataset for training and testing. Refer to `BERT Classifier` folder for the codes and usage instructions.
 
-2. **mBERT All_but_one:**
+2. **mBERT All_but_one::1st_place_medal::small_airplane:** 
 	This setting consists of using multilingual bert model with training dataset from multiple languages and validation and test from a single target language. Refer to `BERT Classifier` folder for the codes and usage instructions.
 
 3. **Translation + BERT Baseline:**
@@ -38,10 +48,10 @@ Make sure to use **Python3** when running the scripts. The package requirements 
 4. **CNN+GRU Baseline:**
 	This setting consists of using MUSE word embeddings along with a CNN-GRU based model, and training and testing on the same language. Refer to `CNN_GRU` folder for the codes and usage instructions.
 	
-5. **LASER+LR baseline:**
+5. **LASER+LR baseline::airplane:**
 	This setting consists of training a logistic regression model on the LASER embeddings of the dataset. The training and testing dataset are from the same language. Refer to `LASER+LR` folder for the codes and usage instructions.
  
-6. **LASER+LR all_but_one:**
+6. **LASER+LR all_but_one::medal_sports:**
 	This setting consists of training a logistic regression model on the LASER embeddings of the dataset. The dataset from other languages are also used to train the LR model. Refer to `LASER+LR` folder for the codes and usage instructions.
 	
 	
@@ -53,9 +63,9 @@ Make sure to use **Python3** when running the scripts. The package requirements 
 
 ### Todos
 - [ ] Upload the our models to [transformers community](https://huggingface.co/models) to make them public
-- [ ] Add arxiv paper link.
+- [ ] Add arxiv paper link and description
 - [ ] Create an interface for **social scientists** where they can use our models easily with their data
 - [ ] Create a pull request to add the models to official [transformers repo](https://github.com/huggingface/transformers)
 
 
-#####  :thumbsup: The repo is still in active developements. Feel free to create an issue !!  :thumbsup:
+#####  :thumbsup: The repo is still in active developements. Feel free to create an [issue](https://github.com/punyajoy/DE-LIMIT/issues) !!  :thumbsup:
