@@ -7,6 +7,7 @@
 
 ./Dataset             --> Contains the dataset
 ./BERT_Classifier     --> Contains the codes for BERT classifiers performing binary classifier on the dataset
+./CNN_GRU			  --> Contains the codes for CNN-GRU model		
 ./LASER+LR 	      --> Containes the codes for Logistic regression classifier used on top of LASER embeddings
 ./Translation         --> Code for translating the Non-English datasets to English.
 
@@ -22,7 +23,7 @@ Make sure to use **Python3** when running the scripts. The package requirements 
 ------------------------------------------
 
 1. **mBERT Baseline**
-	1. Set the `language` you wish to train on in the `params` dictionary. 
+	1. Set the `language` you wish to train on in the `params` dictionary of `BERT_training_inference.py`. 
 	2. Load the datasets into the model using the data_loader function as shown in `BERT_training_inference.py`, using the parameters `files` to specify the dataset directory, `csv_file` set as `*_full.csv` in order to load the untranslated dataset.
 	3. Load the pretrained bert model required, using the parameters `path_files`, `which_bert`
 	4. Set the `how_train` parameter in `BERT_training_inference.py` to `baseline`, and set the parameters `sample_ratio`, `take_ratio`, and `samp_strategy` depending on the experiment setting. 
@@ -37,7 +38,10 @@ Make sure to use **Python3** when running the scripts. The package requirements 
 	2. Set the `csv_file` parameter to `*_translated.csv`. Now data_loader function will load the csv files containing the texts translated to English.
 
 4. **CNN+GRU Baseline**
-
+	1. Download the MUSE embeddings from the [MUSE github repository](https://github.com/facebookresearch/MUSE)
+	2. The files for the CNN-GRU model are located in the `CNN_GRU` folder. The main file is called `CNN_GRU.py`. 
+	3. In the params dictionary in `CNN_GRU.py`, set the values of parameters like `language`, `epochs`, `sample_ratio`, etc depending on the experimental setup.
+	
 5. **LASER+LR baseline**
 	1. Generate the LASER embeddings for the datasets of the target language. Refer to the [LASER github repository](https://github.com/facebookresearch/LASER) for guidelines on how to install and generate the embeddings.
 	2. The code expects the embeddings to be present in the directory `Dataset/embedding`, with the train, val and test files present respectively in the subdirectories of `train`,`val`,`test` in the `embeddings` folder. The name of the file is expected to be **{language}.csv**. E.g. English.csv, German.csv, etc
