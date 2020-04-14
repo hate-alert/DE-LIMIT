@@ -1,4 +1,5 @@
-# DELIMIT--DeEpLearning models for MultIlingual haTespeech
+###                                               DE-LIMIT
+**D**e**E**p**L**earning models for **M**ult**I**lingual ha**T**espeech
 
 ------------------------------------------
 ***Folder Description***
