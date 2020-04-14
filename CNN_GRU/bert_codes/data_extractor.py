@@ -104,6 +104,10 @@ def data_collector(file_names,params,is_train):
         index=12
     elif(params['csv_file']=='*_translated.csv'):
         index=23
+    elif(params['csv_file']=='*_full_target.csv'):
+        index = 19
+    elif(params['csv_file']=='*_translated_target.csv'):
+        index = 30
     sample_ratio=params['sample_ratio']
     type_train=params['how_train']
     sampled=params['samp_strategy']
@@ -159,3 +163,11 @@ def data_collector(file_names,params,is_train):
             n_samples+=1
         df_test=stratified_sample_df(df_test, 'label', n_samples,sampled,params['random_seed'])
         return df_test
+
+def data_collector_target(file_names,params,is_train):
+    df_test=[]    
+    for file in file_names:
+        temp=pd.read_csv(file)
+        df_test.append(temp)
+    df_test=pd.concat(df_test,axis=0)
+    return df_test
