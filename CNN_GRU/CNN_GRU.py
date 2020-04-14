@@ -23,7 +23,7 @@ from bert_codes.utils import *
 import glob
 from BERT_inference import *
 
-
+# Function to select the appropirate model
 def select_model(args,vector=None):
     text=args["path_files"]
     if(text=="birnn"):
@@ -38,7 +38,7 @@ def select_model(args,vector=None):
         model=LSTM_bad(args)
     return model
 
-
+# Function to load the MUSE embeddings
 def load_vec(emb_path, nmax=50000):
     vectors = []
     word2id = {}
@@ -56,10 +56,11 @@ def load_vec(emb_path, nmax=50000):
     embeddings = np.vstack(vectors)
     return embeddings, id2word, word2id
 
-
+# Main training function
 webhook_url = "https://hooks.slack.com/services/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"
 @slack_sender(webhook_url=webhook_url, channel="#model_messages")
 def cnn_gru_train_model(params):
+    # Load the datasets
     train_path=params['files']+'/train/'+params['csv_file']
     val_path=params['files']+'/val/'+params['csv_file'] 
     test_path=params['files']+'/test/'+params['csv_file']
@@ -70,6 +71,7 @@ def cnn_gru_train_model(params):
     df_val=data_collector(val_files,params,False)
     df_test=data_collector(test_files,params,False)
     
+    # Encode the datasets
     lang_map={'Arabic':'ar','French':'fr','Portugese':'pt','Spanish':'es','English':'en','Indonesian':'id','Italian':'it','German':'de','Polish':'pl'}
     path='muse_embeddings/wiki.multi.'+lang_map[params['language']]+'.vec'
     vector,id2word,word2id=load_vec(path)
@@ -83,6 +85,7 @@ def cnn_gru_train_model(params):
     merged_vec=np.append(merged_vec, pad_vec, axis=0)
     params['vocab_size']=merged_vec.shape[0]
 
+    # Generate the dataloaders
     train_dataloader = return_cnngru_dataloader(train_data,batch_size=params['batch_size'],is_train=params['is_train'])
     validation_dataloader=return_cnngru_dataloader(val_data,batch_size=params['batch_size'],is_train=False)
     
