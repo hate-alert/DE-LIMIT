@@ -23,11 +23,12 @@ Make sure to use **Python3** when running the scripts. The package requirements 
 ------------------------------------------
 
 1. **mBERT Baseline**
-	1. Set the `language` you wish to train on in the `params` dictionary of `BERT_training_inference.py`. 
-	2. Load the datasets into the model using the data_loader function as shown in `BERT_training_inference.py`, using the parameters `files` to specify the dataset directory, `csv_file` set as `*_full.csv` in order to load the untranslated dataset.
-	3. Load the pretrained bert model required, using the parameters `path_files`, `which_bert`
-	4. Set the `how_train` parameter in `BERT_training_inference.py` to `baseline`, and set the parameters `sample_ratio`, `take_ratio`, and `samp_strategy` depending on the experiment setting. 
-	5. Call the train_model function. It trains the bert model with the dataset given, for the specified number of epochs. Use the parameter `to_save` for saving the model at the epoch having best validation scores.
+	1. Download the multilingual bert model and tokenizer from the [transformers repository](https://github.com/huggingface/transformers/) and store in the folder `BERT Classifier/multilingual_bert`.
+	2. Set the `language` you wish to train on in the `params` dictionary of `BERT_training_inference.py`. 
+	3. Load the datasets into the model using the data_loader function as shown in `BERT_training_inference.py`, using the parameters `files` to specify the dataset directory, `csv_file` set as `*_full.csv` in order to load the untranslated dataset.
+	4. Load the pretrained bert model required, using the parameters `path_files`, `which_bert`
+	5. Set the `how_train` parameter in `BERT_training_inference.py` to `baseline`, and set the parameters `sample_ratio`, `take_ratio`, and `samp_strategy` depending on the experiment setting. 
+	6. Call the train_model function. It trains the bert model with the dataset given, for the specified number of epochs. Use the parameter `to_save` for saving the model at the epoch having best validation scores.
 
 2. **mBERT All_but_one**
 	1. Similar to the instructions above, set the required parameters for target language, bert model to be used and sample ratio of the target dataset.
@@ -38,7 +39,7 @@ Make sure to use **Python3** when running the scripts. The package requirements 
 	2. Set the `csv_file` parameter to `*_translated.csv`. Now data_loader function will load the csv files containing the texts translated to English.
 
 4. **CNN+GRU Baseline**
-	1. Download the MUSE embeddings from the [MUSE github repository](https://github.com/facebookresearch/MUSE)
+	1. Download the MUSE embeddings from the [MUSE github repository](https://github.com/facebookresearch/MUSE) and store them in the folder `CNN_GRU/muse_embeddings`
 	2. The files for the CNN-GRU model are located in the `CNN_GRU` folder. The main file is called `CNN_GRU.py`. 
 	3. In the params dictionary in `CNN_GRU.py`, set the values of parameters like `language`, `epochs`, `sample_ratio`, etc depending on the experimental setup.
 	
