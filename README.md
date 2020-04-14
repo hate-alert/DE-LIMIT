@@ -1,8 +1,8 @@
-###                                               DE-LIMIT
-**D**e**E**p**L**earning models for **M**ult**I**lingual ha**T**espeech
-
+[![HitCount](http://hits.dwyl.com/punyajoy/DE-LIMIT.svg)](http://hits.dwyl.com/punyajoy/DE-LIMIT)
+[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/dwyl/esta/issues)
+# Deeplearning models for multilingual hate speech
 ------------------------------------------
-***Folder Description***
+***Folder Description*** :point_left:
 ------------------------------------------
 ~~~
 
@@ -56,3 +56,10 @@ Make sure to use **Python3** when running the scripts. The package requirements 
 1. Muse embeddding are downloaded and extracted using the code from [MUSE github repository](https://github.com/facebookresearch/MUSE)
 2. For finetuning BERT this [blog](https://mccormickml.com/2019/07/22/BERT-fine-tuning/)  by Chris McCormick is used and we also referred from [Transformers github repo](https://github.com/huggingface/transformers)
 3. For CNN-GRU model we used the original [repo](https://github.com/ziqizhang/chase) for reference 
+
+### Todos
+- [ ] Upload the our models to [transformers community](https://huggingface.co/models) to make them public
+- [ ] Create an interface for **social scientists** where they can use our models easily with their data
+- [ ] Create a pull request to add the models to official [transformers repo](https://github.com/huggingface/transformers)
+
+#####  :thumbsup: The repo is still in active developements. Feel free to create an issue !!  :thumbsup:
