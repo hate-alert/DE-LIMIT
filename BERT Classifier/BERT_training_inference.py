@@ -3,7 +3,6 @@
 import transformers 
 import torch
 import neptune
-from knockknock import slack_sender
 from api_config import project_name,proxies,api_token
 import glob 
 from transformers import get_linear_schedule_with_warmup
@@ -44,8 +43,6 @@ neptune.set_project(project_name)
   
 # The main function that does the training
 
-webhook_url = "https://hooks.slack.com/services/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"
-@slack_sender(webhook_url=webhook_url, channel="#model_messages")
 def train_model(params,best_val_fscore):
 	
 	# In case of english languages, translation is the origin data itself.
@@ -250,7 +247,7 @@ params={
 	'is_model':True,
 	'learning_rate':2e-5,
 	'files':'../Dataset',
-	'csv_file':'*_translated.csv',
+	'csv_file':'*_full.csv',
 	'samp_strategy':'stratified',
 	'epsilon':1e-8,
 	'path_files':'../multilingual_bert',
