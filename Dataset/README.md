@@ -35,4 +35,5 @@ In the above datasets, some of them contain multiple labels for the text such as
 
 ## Instructions for getting the datasets
 1. Download the datasets from the above sources and place it in the subfolder `Dataset/full_data`
-2. Use the ids given in `ID Mapping` folder for splitting the datasets into train, val and test splits. Use the file `Stratified Split.ipynb` for doing the splits. 
+2. Use the `Translation.ipynb ` to translate the datasets into english
+3. Use the ids given in `ID Mapping` folder for splitting the datasets into train, val and test splits. Use the file `Stratified Split.ipynb` for doing the splits. 
