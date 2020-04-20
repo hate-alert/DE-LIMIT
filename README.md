@@ -53,13 +53,16 @@ We release the code for train/finetuning the following models along with their h
  
 6. **LASER+LR all_but_one::medal_sports:**
 	This setting consists of training a logistic regression model on the LASER embeddings of the dataset. The dataset from other languages are also used to train the LR model. Refer to `LASER+LR` folder for the codes and usage instructions.
-	
+
+### :tada: :tada: BERT models will be available [here](https://huggingface.co/Hate-speech-CNERG). Be sure to check it out :tada: :tada:.
+
 	
 ### Blogs and github repos which we used for reference :angel:
 1. Muse embeddding are downloaded and extracted using the code from [MUSE github repository](https://github.com/facebookresearch/MUSE)
 2. For finetuning BERT this [blog](https://mccormickml.com/2019/07/22/BERT-fine-tuning/)  by Chris McCormick is used and we also referred [Transformers github repo](https://github.com/huggingface/transformers)
 3. For CNN-GRU model we used the original [repo](https://github.com/ziqizhang/chase) for reference 
 4. For generating the LASER embeddings of the dataset, we used the code from [LASER github repository](https://github.com/facebookresearch/LASER)
+
 
 ### Todos
 - [ ] Upload the our models to [transformers community](https://huggingface.co/models) to make them public
