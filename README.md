@@ -64,6 +64,7 @@ We release the code for train/finetuning the following models along with their h
 3. For CNN-GRU model we used the original [repo](https://github.com/ziqizhang/chase) for reference 
 4. For generating the LASER embeddings of the dataset, we used the code from [LASER github repository](https://github.com/facebookresearch/LASER)
 
+### For more details please check out our paper
 
 Sai Saketh Aluru, Binny Mathew, Punyajoy Saha and Animesh Mukherjee. 2020. "[Deep Learning Models for Multilingual Hate Speech Detection](https://arxiv.org/abs/2004.06465)". ECML-PKDD
 
