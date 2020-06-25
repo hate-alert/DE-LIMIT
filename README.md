@@ -2,6 +2,8 @@
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/punyajoy/DE-LIMIT/issues)
 # Deeplearning models for multilingual hate speech
 
+### New update -- :tada: :tada: all our BERT models are available [here](https://huggingface.co/Hate-speech-CNERG). Be sure to check it out :tada: :tada:.
+
 :portugal: :saudi_arabia: :poland: :indonesia: :it: Solving the problem of **hate speech detection** in **9 languages** across **16 datasets**.
 :fr: :us: :es: :de:
 
@@ -54,7 +56,6 @@ We release the code for train/finetuning the following models along with their h
 6. **LASER+LR all_but_one::medal_sports:**
 	This setting consists of training a logistic regression model on the LASER embeddings of the dataset. The dataset from other languages are also used to train the LR model. Refer to `LASER+LR` folder for the codes and usage instructions.
 
-### :tada: :tada: BERT models will be available [here](https://huggingface.co/Hate-speech-CNERG). Be sure to check it out :tada: :tada:.
 
 	
 ### Blogs and github repos which we used for reference :angel:
