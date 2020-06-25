@@ -65,9 +65,15 @@ We release the code for train/finetuning the following models along with their h
 4. For generating the LASER embeddings of the dataset, we used the code from [LASER github repository](https://github.com/facebookresearch/LASER)
 
 
+Sai Saketh Aluru, Binny Mathew, Punyajoy Saha and Animesh Mukherjee. 2020. "[Deep Learning Models for Multilingual Hate Speech Detection](https://arxiv.org/abs/2004.06465)". ECML-PKDD
+
+***Please cite our paper in any published work that uses any of these resources.***
+
+> Aluru, Sai Saket, et al. "Deep Learning Models for Multilingual Hate Speech Detection." arXiv preprint arXiv:2004.06465 (2020).
+
 ### Todos
-- [ ] Upload the our models to [transformers community](https://huggingface.co/models) to make them public
-- [ ] Add arxiv paper link and description
+- [x] Upload our models to [transformers community](https://huggingface.co/models) to make them public
+- [x] Add arxiv paper link and description
 - [ ] Create an interface for **social scientists** where they can use our models easily with their data
 - [ ] Create a pull request to add the models to official [transformers repo](https://github.com/huggingface/transformers)
 
