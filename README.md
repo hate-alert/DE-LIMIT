@@ -7,6 +7,18 @@
 :portugal: :saudi_arabia: :poland: :indonesia: :it: Solving the problem of **hate speech detection** in **9 languages** across **16 datasets**.
 :fr: :us: :es: :de:
 
+***Please cite our paper in any published work that uses any of these resources.***
+
+~~~
+@article{aluru2020deep,
+  title={Deep Learning Models for Multilingual Hate Speech Detection},
+  author={Aluru, Sai Saket and Mathew, Binny and Saha, Punyajoy and Mukherjee, Animesh},
+  journal={arXiv preprint arXiv:2004.06465},
+  year={2020}
+}
+
+~~~
+
 ------------------------------------------
 ***Folder Description*** :point_left:
 ------------------------------------------
@@ -68,9 +80,7 @@ We release the code for train/finetuning the following models along with their h
 
 Sai Saketh Aluru, Binny Mathew, Punyajoy Saha and Animesh Mukherjee. 2020. "[Deep Learning Models for Multilingual Hate Speech Detection](https://arxiv.org/abs/2004.06465)". ECML-PKDD
 
-***Please cite our paper in any published work that uses any of these resources.***
 
-> Aluru, Sai Saket, et al. "Deep Learning Models for Multilingual Hate Speech Detection." arXiv preprint arXiv:2004.06465 (2020).
 
 ### Todos
 - [x] Upload our models to [transformers community](https://huggingface.co/models) to make them public
