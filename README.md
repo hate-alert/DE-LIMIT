@@ -1,6 +1,6 @@
 [![HitCount](http://hits.dwyl.com/punyajoy/DE-LIMIT.svg)](http://hits.dwyl.com/punyajoy/DE-LIMIT)
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/punyajoy/DE-LIMIT/issues)
-# Deeplearning models for multilingual hate speech
+# Deep Learning Models for Multilingual Hate Speech Detection
 
 ### New update -- :tada: :tada: all our BERT models are available [here](https://huggingface.co/Hate-speech-CNERG). Be sure to check it out :tada: :tada:.
 
