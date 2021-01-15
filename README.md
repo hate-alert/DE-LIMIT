@@ -1,11 +1,15 @@
 [![HitCount](http://hits.dwyl.com/punyajoy/DE-LIMIT.svg)](http://hits.dwyl.com/punyajoy/DE-LIMIT)
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/punyajoy/DE-LIMIT/issues)
 # Deep Learning Models for Multilingual Hate Speech Detection
+:portugal: :saudi_arabia: :poland: :indonesia: :it: Solving the problem of **hate speech detection** in **9 languages** across **16 datasets**.
+:fr: :us: :es: :de:
 
 ### New update -- :tada: :tada: all our BERT models are available [here](https://huggingface.co/Hate-speech-CNERG). Be sure to check it out :tada: :tada:.
 
-:portugal: :saudi_arabia: :poland: :indonesia: :it: Solving the problem of **hate speech detection** in **9 languages** across **16 datasets**.
-:fr: :us: :es: :de:
+### Demo 
+
+Please look [here](Example/N_Class_model.ipynb) to check model loading and inference.
+
 
 ***Please cite our paper in any published work that uses any of these resources.***
 
