@@ -1,4 +1,4 @@
-[![HitCount](http://hits.dwyl.com/punyajoy/DE-LIMIT.svg)](http://hits.dwyl.com/punyajoy/DE-LIMIT)
+[![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fhate-alert%2FDE-LIMIT&count_bg=%2379C83D&title_bg=%23555555&icon=adblock.svg&icon_color=%23E7E7E7&title=hits&edge_flat=false)](https://hits.seeyoufarm.com)
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/punyajoy/DE-LIMIT/issues)
 # Deep Learning Models for Multilingual Hate Speech Detection
 :portugal: :saudi_arabia: :poland: :indonesia: :it: Solving the problem of **hate speech detection** in **9 languages** across **16 datasets**.
@@ -13,14 +13,15 @@ Please look [here](Example/N_Class_model.ipynb) to check model loading and infer
 
 ***Please cite our paper in any published work that uses any of these resources.***
 
-~~~
-@article{aluru2020deep,
-  title={Deep Learning Models for Multilingual Hate Speech Detection},
-  author={Aluru, Sai Saket and Mathew, Binny and Saha, Punyajoy and Mukherjee, Animesh},
-  journal={arXiv preprint arXiv:2004.06465},
-  year={2020}
+~~~bibtex
+@inproceedings{aluru2021deep,
+  title={A Deep Dive into Multilingual Hate Speech Classification},
+  author={Aluru, Sai Saketh and Mathew, Binny and Saha, Punyajoy and Mukherjee, Animesh},
+  booktitle={Machine Learning and Knowledge Discovery in Databases. Applied Data Science and Demo Track: European Conference, ECML PKDD 2020, Ghent, Belgium, September 14--18, 2020, Proceedings, Part V},
+  pages={423--439},
+  year={2021},
+  organization={Springer International Publishing}
 }
-
 ~~~
 
 ------------------------------------------
